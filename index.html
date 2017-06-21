@@ -146,7 +146,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Girls Baseline CAPI Summaries</h1>
 <h4 class="author"><em>Chuck Cleland</em></h4>
-<h4 class="date"><em>June 21, 2017 01:18:51 PM EDT</em></h4>
+<h4 class="date"><em>June 21, 2017 01:49:06 PM EDT</em></h4>
 
 </div>
 
@@ -222,7 +222,10 @@ $(document).ready(function () {
 <li><a href="#in-the-past-30-days-has-there-been-one-person-who-you-consider-to-be-your-main-sexual-partner">In the past 30 days, has there been one person who you consider to be your main sexual partner?</a></li>
 <li><a href="#is-your-main-partner-a-male-or-a-female">Is your main partner a male or a female?</a></li>
 <li><a href="#in-the-past-30-days-did-you-have-vaginal-or-anal-sex-with-someone-other-than-your-main-sexual-partner">In the past 30 days, did you have vaginal or anal sex with someone other than your main sexual partner?</a></li>
-<li><a href="#how-many-different-sexual-partners-did-you-have-in-the-last-30-days">How many different sexual partners did you have in the last 30 days?</a></li>
+<li><a href="#how-many-different-sexual-partners-did-you-have-in-the-last-30-days">How many different sexual partners did you have in the last 30 days?</a><ul>
+<li><a href="#male-partners">Male Partners</a></li>
+<li><a href="#female-partners">Female Partners</a></li>
+</ul></li>
 <li><a href="#during-this-time-did-your-sexual-partners-have-multiple-sexual-partners">During this time, did your sexual partners have multiple sexual partners?</a></li>
 <li><a href="#how-many-times-in-the-last-30-days-did-you-have-vaginal-sex-with-your-sexual-partners">How many times in the last 30 days did you have vaginal sex with your sexual partners?</a></li>
 <li><a href="#how-many-times-was-a-male-or-female-condom-used">How many times was a male or female condom used?</a></li>
@@ -230,7 +233,10 @@ $(document).ready(function () {
 <li><a href="#was-a-male-condom-used">Was a male condom used?</a></li>
 <li><a href="#was-a-female-condom-used">Was a female condom used?</a></li>
 </ul></li>
-<li><a href="#the-last-time-you-had-sex-with-your-other-sexual-partners-did-you-use-a-male-or-female-condom">The last time you had sex with your (other) sexual partners did you use a male or female condom?</a></li>
+<li><a href="#the-last-time-you-had-sex-with-your-other-sexual-partners-did-you-use-a-male-or-female-condom">The last time you had sex with your (other) sexual partners did you use a male or female condom?</a><ul>
+<li><a href="#was-a-male-condom-used-1">Was a male condom used?</a></li>
+<li><a href="#was-a-female-condom-used-1">Was a female condom used?</a></li>
+</ul></li>
 <li><a href="#did-the-following-happen-when-you-last-had-sex">Did the following happen when you last had sex?</a></li>
 <li><a href="#how-many-times-in-the-last-30-days-did-you-have-anal-sex-with-your-sexual-partners">How many times in the last 30 days did you have anal sex with your sexual partners?</a></li>
 <li><a href="#during-the-past-30-days-did-you-use-alcohol-or-drugs-just-before-or-during-sex-with-any-sexual-partner">During the past 30 days, did you use alcohol or drugs just before or during sex with any sexual partner?</a></li>
@@ -2175,30 +2181,312 @@ DF &lt;-<span class="st"> </span><span class="kw">as.data.table</span>(DF)</code
 </div>
 <div id="in-the-past-30-days-did-you-have-vaginal-or-anal-sex-with-someone-other-than-your-main-sexual-partner" class="section level2">
 <h2>In the past 30 days, did you have vaginal or anal sex with someone other than your main sexual partner?</h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Grp7_Q43</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">No</td>
+<td align="right">38</td>
+<td align="right">86.4</td>
+</tr>
+<tr class="even">
+<td align="left">Yes</td>
+<td align="right">6</td>
+<td align="right">13.6</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="how-many-different-sexual-partners-did-you-have-in-the-last-30-days" class="section level2">
 <h2>How many different sexual partners did you have in the last 30 days?</h2>
+<div id="male-partners" class="section level3">
+<h3>Male Partners</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Grp7_Grp8z_Q44a</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td align="right">13</td>
+<td align="right">27.1</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="right">29</td>
+<td align="right">60.4</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">4.2</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">4.2</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">1</td>
+<td align="right">2.1</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">1</td>
+<td align="right">2.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="female-partners" class="section level3">
+<h3>Female Partners</h3>
+<pre><code>[1] &quot;No participant had female partners in the last 30 days&quot;</code></pre>
+</div>
 </div>
 <div id="during-this-time-did-your-sexual-partners-have-multiple-sexual-partners" class="section level2">
 <h2>During this time, did your sexual partners have multiple sexual partners?</h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Grp7_Q44bb</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Do not know</td>
+<td align="right">19</td>
+<td align="right">38</td>
+</tr>
+<tr class="even">
+<td align="left">No</td>
+<td align="right">19</td>
+<td align="right">38</td>
+</tr>
+<tr class="odd">
+<td align="left">Yes</td>
+<td align="right">12</td>
+<td align="right">24</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="how-many-times-in-the-last-30-days-did-you-have-vaginal-sex-with-your-sexual-partners" class="section level2">
 <h2>How many times in the last 30 days did you have vaginal sex with your sexual partners?</h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Grp7_Q44bb</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Do not know</td>
+<td align="right">19</td>
+<td align="right">38</td>
+</tr>
+<tr class="even">
+<td align="left">No</td>
+<td align="right">19</td>
+<td align="right">38</td>
+</tr>
+<tr class="odd">
+<td align="left">Yes</td>
+<td align="right">12</td>
+<td align="right">24</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="how-many-times-was-a-male-or-female-condom-used" class="section level2">
 <h2>How many times was a male or female condom used?</h2>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Grp7_Q46a</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td align="right">22</td>
+<td align="right">48.9</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="right">6</td>
+<td align="right">13.3</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">6</td>
+<td align="right">13.3</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">11.1</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">1</td>
+<td align="right">2.2</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">1</td>
+<td align="right">2.2</td>
+</tr>
+<tr class="odd">
+<td align="right">7</td>
+<td align="right">2</td>
+<td align="right">4.4</td>
+</tr>
+<tr class="even">
+<td align="right">8</td>
+<td align="right">2</td>
+<td align="right">4.4</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="the-last-time-you-had-vaginal-sex-with-your-main-partner" class="section level2">
 <h2>The last time you had vaginal sex with your main partner:</h2>
 <div id="was-a-male-condom-used" class="section level3">
 <h3>Was a male condom used?</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Grp7_Grp9_Q47a</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">2</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">No</td>
+<td align="right">24</td>
+<td align="right">48</td>
+</tr>
+<tr class="odd">
+<td align="left">Yes</td>
+<td align="right">24</td>
+<td align="right">48</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="was-a-female-condom-used" class="section level3">
 <h3>Was a female condom used?</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Grp7_Grp9_Q47b</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">7</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">Decline to answer</td>
+<td align="right">2</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">No</td>
+<td align="right">41</td>
+<td align="right">82</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="the-last-time-you-had-sex-with-your-other-sexual-partners-did-you-use-a-male-or-female-condom" class="section level2">
 <h2>The last time you had sex with your (other) sexual partners did you use a male or female condom?</h2>
+<div id="was-a-male-condom-used-1" class="section level3">
+<h3>Was a male condom used?</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Grp7_Grp9x_Q48a</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">5</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">No</td>
+<td align="right">26</td>
+<td align="right">52</td>
+</tr>
+<tr class="odd">
+<td align="left">Yes</td>
+<td align="right">19</td>
+<td align="right">38</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="was-a-female-condom-used-1" class="section level3">
+<h3>Was a female condom used?</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Grp7_Grp9x_Q48b</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">9</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Decline to answer</td>
+<td align="right">2</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">No</td>
+<td align="right">39</td>
+<td align="right">78</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="did-the-following-happen-when-you-last-had-sex" class="section level2">
 <h2>Did the following happen when you last had sex?</h2>

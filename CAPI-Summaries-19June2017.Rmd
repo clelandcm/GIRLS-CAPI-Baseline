@@ -1,0 +1,1812 @@
+---
+title: "Girls Baseline CAPI Summaries"
+author: "Chuck Cleland"
+date: '`r format(Sys.time(), "%B %d, %Y %r %Z")`'
+output:
+  html_document:
+    highlight: tango
+    theme: cerulean
+    toc: yes
+    toc_depth: 5
+  word_document:
+    toc: yes
+    toc_depth: '5'
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+options(width = 150)
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, comment=NA, fig.height = 7, fig.width = 10)
+```
+
+```{r, echo = FALSE}
+# Load Required R Packages
+
+library(readr)
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+```
+
+```{r, echo = FALSE}
+# Read in CSV Data
+
+load("c:/chuck/NYU/Kurth/High Yield Testing/Data/ctypes.RData", .GlobalEnv)
+Girls.CSV.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/', pattern = ".csv$|.CSV$", full.names = TRUE)
+Girls.CSV.list <- vector(mode="list", length = length(Girls.CSV.files))
+for(i in 1:length(Girls.CSV.list)){Girls.CSV.list[[i]] <- read_csv(file = Girls.CSV.files[i], col_types = cols(`Grp7:Q36a` = 'i',
+                                                                                                               `Grp7:Q53` = 'c',
+                                                                                                               `Grp7:Q53b` = 'i',
+                                                                                                               `Grp7:Q53d` = 'i',
+                                                                                                               `Grp7:Q53e` = 'i',
+                                                                                                               `Grp130:Grp131:Q70a` = 'c',
+                                                                                                               `Grp130:Grp131:Q70b` = 'i',
+                                                                                                               `Grp130:Grp131:Q70d` = 'i',
+                                                                                                               `Grp130:Grp131:Q77` = 'c',
+                                                                                                               `Q88` = 'c',
+                                                                                                               `Q93` = 'c',
+                                                                                                               `Q95` = 'c'))}
+names(Girls.CSV.list) <- Girls.CSV.files
+
+DF <- bind_rows(Girls.CSV.list[1:2], .id = "file_from")
+names(DF) <- gsub(":", "_", names(DF))
+
+DF <- as.data.table(DF)
+```
+
+# Duplicated ID Numbers
+```{r}
+DF %>% 
+  filter(PUID %in% DF$PUID[duplicated(DF$PUID)]) %>% 
+  select(PUID, date, InterNo, meta_instanceID, start, end) %>%
+  knitr::kable()
+```
+
+# Incomplete ID Numbers
+```{r}
+DF %>%
+  filter(nchar(PUID) != 13) %>%
+  select(PUID, date, InterNo, meta_instanceID, start, end) %>%
+  knitr::kable()
+```
+
+# Interview Date
+```{r}
+DF %>% 
+  count(date) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+
+DF %>%
+  ggplot(aes(x = as.Date(date))) + 
+  geom_histogram(fill="#4169E1", color = "white") +
+  theme_minimal() +
+  theme(text = element_text(size=16),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_breaks = "2 days") +
+  xlab("")
+```
+
+# Interviewer
+```{r}
+DF %>% 
+  count(InterNo) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+# Module 1:  Demographics
+## Age at Last Birthday
+```{r}
+DF %>% 
+  count(Q2) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+
+DF %>% 
+  summarize(n = n(),
+            Mean = mean(Q2, na.rm = TRUE),
+            sd = sd(Q2, na.rm = TRUE),
+            Median = median(Q2, na.rm = TRUE),
+            IQR = IQR(Q2, na.rm = TRUE),
+            Min = min(Q2, na.rm = TRUE),
+            Max = max(Q2, na.rm = TRUE)) %>%
+  knitr::kable()
+
+DF %>%
+  ggplot(aes(x = Q2)) + 
+  geom_histogram(fill="#4169E1", color = "white") +
+  theme_minimal() +
+  theme(text = element_text(size=16)) +
+  scale_x_continuous(limits = c(14,24), breaks = seq(14,24,1)) +
+  xlab("Age at Last Birthday")
+```
+
+## School Attendance
+```{r}
+DF %>%
+  mutate(Q3 = car::recode(Q3, "1='Yes';2='No'"),
+         Q4 = car::recode(Q4, "1='Yes';2='No'"),
+         `School Attendance` = ifelse(!is.na(Q4) & Q4 == 'No', 'Never',
+                                      ifelse(!is.na(Q4) & Q3 == 'No' & Q4 == 'Yes', 'In the past, but not currently',
+                                             ifelse(Q3 == 'Yes', 'Currently Attending', NA)))) %>%
+  count(`School Attendance`) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## What is the highest level of school you attended or are currently attending?
+```{r}
+DF %>%
+  mutate(Q5 = car::recode(Q5, "1='Primary';
+                               2='Secondary';
+                               3='University';
+                               4='Vocational/Training';
+                              98='Other';
+                              99='Do Not Know'")) %>%
+  count(Q5) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## What is the highest class/form/year completed at that level?
+```{r}
+DF %>% 
+  count(Q6) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Where do you live (county, division, location)?
+```{r}
+DF %>%
+  count(CountyLive, SubCountyLive,  DivisionLive) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Do you live alone?
+```{r}
+DF %>%
+  mutate(Q8 = car::recode(Q8, "1='Yes';2='No'")) %>%
+  count(Q8) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## If you don't live alone, do you live with family, others, or a student hostel?
+```{r}
+DF %>%
+  filter(Q8 == 2) %>%
+  mutate(Q9 = car::recode(Q9, "1='I live with my family';2='I live in a student Hostel';98='Other'")) %>%
+  count(Q9) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many people live in your home?
+```{r}
+DF %>% 
+  filter(!is.na(Q10)) %>%
+  summarize(n = n(),
+            Mean = mean(Q10, na.rm = TRUE),
+            sd = sd(Q10, na.rm = TRUE),
+            Median = median(Q10, na.rm = TRUE),
+            IQR = IQR(Q10, na.rm = TRUE),
+            Min = min(Q10, na.rm = TRUE),
+            Max = max(Q10, na.rm = TRUE)) %>%
+  knitr::kable()
+
+DF %>%
+  filter(!is.na(Q10)) %>%
+  ggplot(aes(x = Q10)) + 
+  geom_histogram(fill="#4169E1", color = "white") +
+  theme_minimal() +
+  theme(text = element_text(size=16)) +
+  xlab("Number of People Who Live in Your Home")
+```
+
+## How long have you lived at your current physical address?
+```{r}
+DF %>%
+  mutate(Q11 = car::recode(Q11, "1='Less than one year';2='1-3 years';3='4+ years';98='I am mobile'")) %>%
+  count(Q11) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## What is your current marital status?
+```{r}
+DF %>%
+  mutate(Q12 = car::recode(Q12, "1='Single (no current relationship)';
+                                 2='Married, monogamous';
+                                 3='Married, polygamous';
+                                 4='Not married, cohabiting/living together';	
+                                 5='Not married, multiple partners';
+                                 6='Divorced/Separated';
+                                 7='Widowed'")) %>%
+  count(Q12) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## What was your main source of income in the past 6 months?
+```{r}
+DF %>%
+  mutate(Q13 = car::recode(Q13, "1='No work, receive money from my family, friends, partner';    
+                                 2='Subsistence farming'; 
+                                 3='Commercial farming';
+                                 4='Formally employed';                   
+                                 5='Informally employed';
+                                 6='Self-employed';
+                                98='Other'")) %>%
+  count(Q13) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Do you have access to a cell phone number where you could be reached privately/securely/confidentially?
+```{r}
+DF %>%
+  mutate(Q14 = car::recode(Q14, "1='Yes';
+                                 2='No';
+                                99='Do Not Know';
+                                98='Other';	
+                                97='Decline to Answer'")) %>%
+  count(Q14) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## To whom does the cell phone number belong?
+```{r}
+DF %>%
+  filter(!is.na(Q15)) %>%
+  mutate(Q15 = car::recode(Q15, "1='You';
+                                 2='Father';
+                                 3='Mother';
+                                 4='Sibling (brother sister)';
+                                 5='Friend (romantic)';
+                                 6='Friend (just a friend)';
+                                 7='Spouse';
+                                98='Other'")) %>%
+  count(Q15) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+# Module 2: Drug Use, Violence, and Mood
+## Have you ever drunk alcohol, including beer, or local brew such as changaa?
+```{r}
+DF %>%
+  mutate(Q16 = car::recode(Q16, "1='Yes';
+                                 2='No';
+                                99='Do Not Know';
+                                97='Decline to Answer'")) %>%
+  count(Q16) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## During the past 30 days, on how many times did you have at least one drink of alcohol?
+```{r}
+DF %>%
+  filter(!is.na(Q17)) %>%
+  mutate(Q17 = car::recode(Q17, "1='0 times';
+                                 2='1 or 2 times';
+                                 3='3 to 9 times';
+                                 4='10 to 19 times';
+                                 5='20 to 39 times';
+                                 6='40 or more times';
+                                99='Do Not Know';
+                                97='Decline to Answer'")) %>%
+  count(Q17) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How often do you have a drink containing alcohol?
+```{r}
+DF %>%
+  filter(!is.na(Q18)) %>%
+  mutate(Q18 = car::recode(Q18, "0='Never';
+                                 1='Monthly or less';
+                                 2='2 to 4 times a month';
+                                 3='2 to 3 times a week';
+                                 4='4 or more times a week';
+                                 5='Do not know'"),
+         Q18 = ordered(Q18, levels = c('Never','Monthly or less','2 to 4 times a month','2 to 3 times a week','4 or more times a week','Do not know'))) %>%
+  count(Q18) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many standard drinks containing alcohol do you have on a typical day?
+```{r}
+DF %>%
+  filter(!is.na(Q19)) %>%
+  mutate(Q19 = car::recode(Q19, "0='1 or 2';
+                                 1='3 or 4';
+                                 2='5 or 6';
+                                 3='7, 8, or 9';
+                                 4='10 or more';
+                                 5='Do not know'"),
+         Q19 = ordered(Q19, levels = c('1 or 2','3 or 4','5 or 6','7, 8, or 9','10 or more','Do not know'))) %>%
+  count(Q19) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How often do you have six or more drinks on one occasion?
+```{r}
+DF %>%
+  filter(!is.na(Q20)) %>%
+  mutate(Q20 = car::recode(Q20, "0='Never';
+                                 1='Less than monthly';
+                                 2='Monthly';
+                                 3='Weekly';
+                                 4='Daily or almost daily';
+                                 5='Do not know'"),
+         Q20 = ordered(Q20, levels = c('Never','Less than monthly','Monthly','Weekly','Daily or almost daily','Do not know'))) %>%
+  count(Q20) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many times in the last 30 days have you used a drug for non-medical, recreational reasons?
+```{r}
+DF %>%
+  filter(!is.na(Q21)) %>%
+  mutate(Q21 = car::recode(Q21, "1='0 times';
+                                 2='1 or 2 times';
+                                 3='3 to 9 times';
+                                 4='10 to 19 times';
+                                 5='20 to 39 times';
+                                 6='40 or more times';
+                                99='Do Not Know';
+                                97='Decline to Answer'")) %>%
+  count(Q21) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## What drug did you use most often in the last 30 days?
+```{r}
+DF %>%
+  filter(!is.na(Q21)) %>%
+  mutate(Q21 = car::recode(Q21, "1='0 times';
+                                 2='1 or 2 times';
+                                 3='3 to 9 times';
+                                 4='10 to 19 times';
+                                 5='20 to 39 times';
+                                 6='40 or more times';
+                                99='Do Not Know';
+                                97='Decline to Answer'")) %>%
+  count(Q21) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Has someone you were dating or going out with ever physically hurt you on purpose?
+```{r}
+DF %>%
+  mutate(Q23 = car::recode(Q23, "1='Yes';
+                                 2='No';
+                                99='Do Not Know';
+                                97='Decline to Answer'")) %>%
+  count(Q23) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever physically hurt someone you were dating or going out with on purpose?
+```{r}
+DF %>%
+  mutate(Q24 = car::recode(Q24, "1='Yes';
+                                 2='No';
+                                99='Do Not Know';
+                                97='Decline to Answer'")) %>%
+  count(Q24) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Over the last 2 weeks, how often have you been bothered by any of the following problems? (PHQ-2)
+### Little interest or pleasure in doing things
+```{r}
+DF %>%
+  mutate(Q25 = car::recode(Q25, "0='Not at all';
+                                 1='Several days';
+                                 2='More than half the days';
+                                 3='Nearly every day'"),
+         Q25 = ordered(Q25, levels = c('Not at all','Several days','More than half the days','Nearly every day'))) %>%
+  count(Q25) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### Feeling down, depressed or hopeless 
+```{r}
+DF %>%
+  mutate(Q26 = car::recode(Q26, "0='Not at all';
+                                 1='Several days';
+                                 2='More than half the days';
+                                 3='Nearly every day'"),
+         Q26 = ordered(Q26, levels = c('Not at all','Several days','More than half the days','Nearly every day'))) %>%
+  count(Q26) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+# Module 3: Health Promotion Services
+## Where is the best place for you to receive information about sex and ways to protect yourself from sexually transmitted diseases, HIV/AIDS, and unwanted pregnancy?
+```{r}
+DF %>%
+  mutate(Q27 = car::recode(Q27, "1='Government hospital or clinic';
+                                 2='Private Hospital or clinic';
+                                 3='Family Planning Clinic';
+                                 4='Private Doctor';
+                                 5='School';
+                                 6='Mobile health clinic';
+                                 7='TBA/CHW';
+                                 8='Traditional healer';
+                                98='Other';
+                                99='Do not know';
+                                97='Decline to Answer'")) %>%
+  count(Q27) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have any of these issues ever stopped, delayed or discouraged you from getting, or continuing with, professional care for a health problem?
+```{r}
+Multiple.Selection <- strsplit(DF$Q28, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  mutate(values = as.character(values),
+    Q28 = case_when(values == "1" ~ "Fear of being judged or embarrassed",
+values == "2" ~ "I don't want other people to see me there",
+values == "3" ~ "I have no money to pay",
+values == "4" ~ "Location is too far away",
+values == "5" ~ "My parent's or caregiver's reaction",
+values == "6" ~ "My boyfriend's/girlfriend's reaction",
+values == "7" ~ "I do not have transportation",
+values == "8" ~ "Services are not friendly towards youth",
+values == "9" ~ "I don't know where to get services",
+values == "10" ~ "I don't feel it is necessary",
+values == "11" ~ "I don't want to know the results of any tests",
+values == "12" ~ "Provider will not take my concerns seriously",
+values == "13" ~ "Religious beliefs",
+values == "14" ~ "The wait at the clinic is too long",
+values == "15" ~ "There is nothing stopping me",
+values == "98" ~ "Other",
+values == "99" ~ "Do not know",
+values == "97" ~ "Decline to Answer")) %>%
+  count(Q28) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+# Module 4: Sexual Behaviors
+## In your opinion, is it common for young men in this community to have more than one sex partner at a time?
+```{r}
+DF %>%
+  mutate(Q29 = car::recode(Q29, "1='Yes';2='No';97='Decline to Answer';99='Do Not Know'")) %>%
+  count(Q29) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## In your opinion, is it common for young women in this community to have more than one sex partner at a time?
+```{r}
+DF %>%
+  mutate(Q30 = car::recode(Q30, "1='Yes';2='No';97='Decline to Answer';99='Do Not Know'")) %>%
+  count(Q30) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever had sexual intercourse?
+```{r}
+DF %>%
+  mutate(Q31 = car::recode(Q31, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Q31) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+
+
+## How old were you when you had sexual intercourse for the very first time?
+```{r}
+DF %>% 
+  count(Grp7_Q32a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+
+DF %>% 
+  filter(!is.na(Grp7_Q32a)) %>%
+  summarize(n = n(),
+            Mean = mean(Grp7_Q32a, na.rm = TRUE),
+            sd = sd(Grp7_Q32a, na.rm = TRUE),
+            Median = median(Grp7_Q32a, na.rm = TRUE),
+            IQR = IQR(Grp7_Q32a, na.rm = TRUE),
+            Min = min(Grp7_Q32a, na.rm = TRUE),
+            Max = max(Grp7_Q32a, na.rm = TRUE)) %>%
+  knitr::kable()
+
+DF %>%
+  ggplot(aes(x = Grp7_Q32a)) + 
+  geom_histogram(fill="#4169E1", color = "white") +
+  theme_minimal() +
+  theme(text = element_text(size=16)) +
+  xlab("Age at First Sexual Intercourse")
+```
+
+## With how many sexual partners have you had sexual intercourse within the last six months?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q33a)) %>%
+  count(Grp7_Q33a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## During the past 6 months, have you had sex with only males, only females, or both males and females?
+```{r}
+DF %>%
+  mutate(Grp7_Q34 = car::recode(Grp7_Q34, "1='Only males'; 
+                                           2='Only females'; 
+                                           3='Both males and females';
+                                          97='Decline to Answer';
+                                          96=NA")) %>%
+  count(Grp7_Q34) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## In total, with how many different people have you had sexual intercourse in your lifetime?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q35a)) %>%
+  count(Grp7_Q35a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## When was the last time you had sexual intercourse?
+* Number of Days
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q36)) %>%
+  mutate(Grp7_Q36a = as.double(Grp7_Q36a),
+         Grp7_Q36b = as.double(Grp7_Q36b),
+         Grp7_Q36c = as.double(Grp7_Q36c),
+         Grp7_Q36d = as.double(Grp7_Q36d),
+         Days_Since_Last_Intercourse = case_when(Grp7_Q36 == 1 ~ Grp7_Q36a,
+                                                 Grp7_Q36 == 2 ~ Grp7_Q36b * 7,
+                                                 Grp7_Q36 == 3 ~ Grp7_Q36c * 30.4375,
+                                                 Grp7_Q36 == 4 ~ Grp7_Q36d * 365,
+                                                 TRUE ~ as.double(NA))) %>%
+  summarize(n = n(),
+            Mean = mean(Days_Since_Last_Intercourse, na.rm = TRUE),
+            sd = sd(Days_Since_Last_Intercourse, na.rm = TRUE),
+            Median = median(Days_Since_Last_Intercourse, na.rm = TRUE),
+            IQR = IQR(Days_Since_Last_Intercourse, na.rm = TRUE),
+            Min = min(Days_Since_Last_Intercourse, na.rm = TRUE),
+            Max = max(Days_Since_Last_Intercourse, na.rm = TRUE)) %>%
+  knitr::kable()
+```
+
+## What was your relationship to this person with whom you had sexual intercourse?
+```{r}
+DF %>%
+  mutate(Grp7_Q37 = car::recode(Grp7_Q37, "1='Spouse (Husband or wife)';
+                                           2='Cohabitating male partner';
+                                           3='Cohabitating female partner';
+                                           4='Boyfriend';
+                                           5='Girlfriend';
+                                           6='Casual partner';
+                                           7='Female Sex worker';
+                                           8='Male Sex worker';
+                                          98='Other';
+                                          97='Decline to Answer'")) %>%
+  count(Grp7_Q37) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## The last time you had sex, was a condom used?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q38)) %>%
+  mutate(Grp7_Q38 = car::recode(Grp7_Q38, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q38) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Was this partner older, younger, or the same age as you?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q39)) %>%
+  mutate(Grp7_Q39 = car::recode(Grp7_Q39, "1='Older';
+                                           2='Younger';
+                                           3='Same age';
+                                          99='Do not know';
+                                          97='Decline to Answer'")) %>%
+  count(Grp7_Q39) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many years difference was there between your age and this partner's age?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q40a)) %>%
+  count(Grp7_Q40a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## In the past 30 days, has there been one person who you consider to be your main sexual partner?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q41)) %>%
+  mutate(Grp7_Q41 = car::recode(Grp7_Q41, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q41) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Is your main partner a male or a female?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q42)) %>%
+  mutate(Grp7_Q42 = car::recode(Grp7_Q42, "1='Male';
+2='Female';
+97='Decline to Answer'")) %>%
+  count(Grp7_Q42) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## In the past 30 days, did you have vaginal or anal sex with someone other than your main sexual partner?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q43)) %>%
+  mutate(Grp7_Q43 = car::recode(Grp7_Q43, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q43) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many different sexual partners did you have in the last 30 days?
+### Male Partners
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Grp8z_Q44a)) %>%
+  count(Grp7_Grp8z_Q44a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### Female Partners
+```{r}
+if(all(is.na(DF$Grp7_Grp8z_Q44b))){
+  print("No participant had female partners in the last 30 days")
+} else{
+DF %>%
+  filter(!is.na(Grp7_Grp8z_Q44b)) %>%
+  count(Grp7_Grp8z_Q44b) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+}
+```
+
+## During this time, did your sexual partners have multiple sexual partners?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q44bb)) %>%
+  mutate(Grp7_Q44bb = car::recode(Grp7_Q44bb, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q44bb) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many times in the last 30 days did you have vaginal sex with your sexual partners?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q45a)) %>%
+  count(Grp7_Q45a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many times was a male or female condom used?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q46a)) %>%
+  count(Grp7_Q46a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## The last time you had vaginal sex with your main partner:
+### Was a male condom used?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Grp9_Q47a)) %>%
+  mutate(Grp7_Grp9_Q47a = car::recode(Grp7_Grp9_Q47a, "1='Yes';
+                                  2='No';
+                                  3=NA;
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Grp9_Q47a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### Was a female condom used?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Grp9_Q47b)) %>%
+  mutate(Grp7_Grp9_Q47b = car::recode(Grp7_Grp9_Q47b, "1='Yes';
+                                  2='No';
+                                  3=NA;
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Grp9_Q47b) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## The last time you had sex with your (other) sexual partners did you use a male or female condom?
+### Was a male condom used?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Grp9x_Q48a)) %>%
+  mutate(Grp7_Grp9x_Q48a = car::recode(Grp7_Grp9x_Q48a, "1='Yes';
+                                  2='No';
+                                  3=NA;
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Grp9x_Q48a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### Was a female condom used?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Grp9x_Q48b)) %>%
+  mutate(Grp7_Grp9x_Q48b = car::recode(Grp7_Grp9x_Q48b, "1='Yes';
+                                  2='No';
+                                  3=NA;
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Grp9x_Q48b) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Did the following happen when you last had sex?
+### The condom broke or tore
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q49)) %>%
+  mutate(Grp7_Q49 = grepl("^1$|1 ", Grp7_Q49)) %>%
+  rename(Checked = Grp7_Q49) %>%
+  count(Checked) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### The condom slipped off
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q49)) %>%
+  mutate(Grp7_Q49 = grepl("^2$|2 ", Grp7_Q49)) %>%
+  rename(Checked = Grp7_Q49) %>%
+  count(Checked) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### We put the condom on after we started having sex
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q49)) %>%
+  mutate(Grp7_Q49 = grepl("^3$|3 ", Grp7_Q49)) %>%
+  rename(Checked = Grp7_Q49) %>%
+  count(Checked) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### We took the condom off before we finished sex
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q49)) %>%
+  mutate(Grp7_Q49 = grepl("^4$|4 ", Grp7_Q49)) %>%
+  rename(Checked = Grp7_Q49) %>%
+  count(Checked) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### None of the above
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q49)) %>%
+  mutate(Grp7_Q49 = grepl("^5$|5 ", Grp7_Q49)) %>%
+  rename(Checked = Grp7_Q49) %>%
+  count(Checked) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many times in the last 30 days did you have anal sex with your sexual partners?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q50a)) %>%
+  count(Grp7_Q50a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## During the past 30 days, did you use alcohol or drugs just before or during sex with any sexual partner?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q51)) %>%
+  mutate(Grp7_Q51 = car::recode(Grp7_Q51, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q51) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have any of your sexual partners (in your lifetime) ever been tested for HIV?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q52)) %>%
+  mutate(Grp7_Q52 = car::recode(Grp7_Q52, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q52) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## What is the HIV status of your sexual partners?
+### Number who were HIV positive
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q53a)) %>%
+  count(Grp7_Q53a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### If HIV+, how many are on ARVs?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q53b)) %>%
+  count(Grp7_Q53b) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### Number who were HIV negative 
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q53c)) %>%
+  count(Grp7_Q53c) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+### Number who you did not know their HIV status 
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q53d)) %>%
+  count(Grp7_Q53d) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## The last time that you had any type of sex with a sexual partner, did the partner pay you for sex with money or with a gift or a favor or something you needed?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q54)) %>%
+  mutate(Grp7_Q54 = car::recode(Grp7_Q54, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q54) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Has a sexual partner ever paid you for sex with money or with a gift or favor or something you needed?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q55)) %>%
+  mutate(Grp7_Q55 = car::recode(Grp7_Q55, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q55) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever paid a sexual partner for sex with money or with a gift or favor or something he/she needed?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q56)) %>%
+  mutate(Grp7_Q56 = car::recode(Grp7_Q56, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q56) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever been physically forced to have sexual intercourse when you did not want to?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q57)) %>%
+  mutate(Grp7_Q57 = car::recode(Grp7_Q57, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q57) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever physically forced someone to have sexual intercourse when he/she did not want to?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q58)) %>%
+  mutate(Grp7_Q58 = car::recode(Grp7_Q58, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q58) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever been pregnant?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q59)) %>%
+  mutate(Grp7_Q59 = car::recode(Grp7_Q59, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Grp7_Q59) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever given birth?
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q60)) %>%
+  mutate(Grp7_Q60 = car::recode(Grp7_Q60, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer'")) %>%
+  count(Grp7_Q60) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many sons or daughters have you given birth to? Whether living or not.
+```{r}
+DF %>%
+  filter(!is.na(Grp7_Q61a)) %>%
+  count(Grp7_Q61a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever had a sexually transmitted infection like syphilis, gonorrhea, chlamydia or genital warts?
+```{r}
+DF %>%
+  filter(!is.na(Q62)) %>%
+  mutate(Q62 = car::recode(Q62, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Q62) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+# Module 5: HIV Counseling and Testing
+## What are the various ways you have heard of that might prevent getting HIV, the virus that causes AIDS?
+```{r}
+Multiple.Selection <- strsplit(DF$Q63, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  filter(!is.na(values)) %>%
+  mutate(values = as.character(values),
+    Q63 = case_when(values == "1" ~ "Use condoms every time you have sex",
+values == "2" ~ "Have an HIV test",
+values == "3" ~ "Not sharing needles or razor blades",
+values == "4" ~ "Be circumcised",  
+values == "5" ~ "Take antiretrovirals (ARVs) if you are HIV positive",
+values == "6" ~ "Take ARVs for you and your baby if you are pregnant (PMTCT)",               
+values == "7" ~ "Take ARVS if you are HIV-negative (PrEP)",
+values == "98" ~ "Other",
+values == "99" ~ "Do not know",
+values == "97" ~ "Decline to Answer")) %>%
+  count(Q63) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## It is important for me to get tested for HIV.
+```{r}
+DF %>%
+  mutate(Q64 = car::recode(Q64, "1='Strongly Disagree'; 
+                                 2='Disagree';
+                                 3='Agree';
+                                 4='Strongly Agree';
+                                99='Do not know';
+                                97='Decline to Answer'"),
+         Q64 = ordered(Q64, levels=c('Strongly Disagree','Disagree','Agree','Strongly Agree','Do not know','Decline to Answer'))) %>%
+  count(Q64) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Where would you go to get tested for HIV?
+```{r}
+Multiple.Selection <- strsplit(DF$Q65, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  mutate(values = as.character(values),
+    Q65 = case_when(values == '1' ~ "Government hospital or clinic",
+values == '2' ~ "Private Hospital or clinic",
+values == '3' ~ "Family Planning Clinic",
+values == '4' ~ "Private Doctor",
+values == '5' ~ "School",
+values == '6' ~ "Mobile health clinic",
+values == '7' ~ "TBA/CHW",
+values == '8' ~ "Traditional healer",
+values == '98' ~ "Other",
+values == '99' ~ "Do not know",
+values == '97' ~ "Decline to Answer")) %>%
+  count(Q65) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## What would get in the way of you getting tested for HIV? Please answer yes or no to the following statements.
+```{r}
+DF %>% 
+  select(Grp13_Q66a:Grp13_Q66p) %>%
+  gather(Item, Response) %>%
+  mutate(Item = gsub("Grp13_Q66","", Item),
+         Item = case_when(Item == "a" ~ "a. Fear of being judged or embarrassed",
+         Item == "b" ~ "b. I don't want other people to see me there",
+         Item == "c" ~ "c. I have no money to pay",
+         Item == "d" ~ "d. Location is too far away",
+         Item == "e" ~ "e. My parent's or caregiver's reaction",
+         Item == "f" ~ "f. My boyfriend's/girlfriend's reaction",
+         Item == "g" ~ "g. I do not have transportation",
+         Item == "h" ~ "h. Services are not friendly towards youth",
+         Item == "i" ~ "i. I don't know where to get services",
+         Item == "j" ~ "j. I don't feel it is necessary",
+         Item == "k" ~ "k. I don't want to know the results of the test",
+         Item == "l" ~ "l. Provider will not take my concerns seriously",
+         Item == "m" ~ "m. Religious beliefs",
+         Item == "n" ~ "n. The wait at the clinic is too long",
+         Item == "o" ~ "o. There is nothing stopping me",
+         Item == "p" ~ "p. Other"),
+         Response = as.character(Response),
+         Response = case_when(Response == "1" ~ "Yes",
+                              Response == "2" ~ "No",
+                              Response == "97" ~ "97",
+                              Response == "98" ~ "98",
+                              Response == "99" ~ "99")) %>%
+  group_by(Item) %>%
+  summarize(`No n` = sum(Response == 'No'),
+            `No %` = round(mean(Response == 'No') * 100, 1),
+            `Yes n` = sum(Response == 'Yes'),
+            `Yes %` = round(mean(Response == 'Yes') * 100, 1)) %>%
+  mutate(`Total Yes or No` = `No n` + `Yes n`) %>%
+  knitr::kable()
+```
+
+## Would you use a self-test to test yourself for HIV?
+```{r}
+DF %>%
+  filter(!is.na(Q67)) %>%
+  mutate(Q67 = car::recode(Q67, "1='Yes';
+                                 2='No';
+                                 99='Do not know'")) %>%
+  count(Q67) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever been voluntarily tested for HIV?
+```{r}
+DF %>%
+  filter(!is.na(Q68)) %>%
+  mutate(Q68 = car::recode(Q68, "1='Yes';
+                                 2='No';
+                                 97='Decline to answer';
+                                 99='Do not know'")) %>%
+  count(Q68) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## How many times have you been voluntarily tested for HIV in your lifetime?
+```{r}
+DF %>% 
+  filter(!is.na(Grp130_Q69a)) %>%
+  count(Grp130_Q69a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+
+DF %>%
+  ggplot(aes(x = Grp130_Q69a)) + 
+  geom_histogram(fill="#4169E1", color = "white") +
+  theme_minimal() +
+  theme(text = element_text(size=16)) +
+  xlab("Number of Past HIV Tests")
+```
+
+## If yes, when was the most recent time you were tested for HIV?
+* Number of Days Ago
+```{r}
+DF %>%
+  filter(!is.na(Grp130_Grp131_Q70)) %>%
+  mutate(Grp130_Grp131_Q70a = as.double(Grp130_Grp131_Q70a),
+         Grp130_Grp131_Q70b = as.double(Grp130_Grp131_Q70b),
+         Grp130_Grp131_Q70c = as.double(Grp130_Grp131_Q70c),
+         Grp130_Grp131_Q70d = as.double(Grp130_Grp131_Q70d),
+         Days_Since_Last_HIV_Test = case_when(Grp130_Grp131_Q70 == 1 ~ Grp130_Grp131_Q70a,
+                                                 Grp130_Grp131_Q70 == 2 ~ Grp130_Grp131_Q70b * 7,
+                                                 Grp130_Grp131_Q70 == 3 ~ Grp130_Grp131_Q70c * 30.4375,
+                                                 Grp130_Grp131_Q70 == 4 ~ Grp130_Grp131_Q70d * 365,
+                                                 TRUE ~ as.double(NA))) %>%
+  summarize(n = n(),
+            Mean = mean(Days_Since_Last_HIV_Test, na.rm = TRUE),
+            sd = sd(Days_Since_Last_HIV_Test, na.rm = TRUE),
+            Median = median(Days_Since_Last_HIV_Test, na.rm = TRUE),
+            IQR = IQR(Days_Since_Last_HIV_Test, na.rm = TRUE),
+            Min = min(Days_Since_Last_HIV_Test, na.rm = TRUE),
+            Max = max(Days_Since_Last_HIV_Test, na.rm = TRUE)) %>%
+  knitr::kable()
+```
+
+
+## If NO, What are the reasons you have never been tested for HIV?
+```{r}
+Multiple.Selection <- strsplit(as.character(DF$Grp130_Grp131_Q71), " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+  
+Multiple.Selection %>%
+  mutate(values = as.character(values),
+    Grp130_Grp131_Q71 = case_when(values == "1" ~ "I don't think I am at risk", 
+values == "2" ~ "Nervous about the results", 
+values == "3" ~ "Do not know where to get tested",
+values == "4" ~ "Testing site is too far away",
+values == "5" ~ "Did not ever think to get tested",
+values == "6" ~ "Worried about my spouse or partner's reaction", 
+values == "7" ~ "Not important",
+values == "8" ~ "No health provider ever offered it to me",
+values == "9" ~ "No time to go",
+values == "98" ~ "Other",
+values == "99" ~ "Do not know",
+values == "97" ~ "Decline to Answer")) %>%
+  count(Grp130_Grp131_Q71) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## If YES, What were the reasons you were tested for HIV?
+```{r}
+Multiple.Selection <- strsplit(DF$Grp130_Grp131_Q72, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  filter(!is.na(values)) %>%
+  mutate(values = as.character(values),
+    Grp130_Grp131_Q72 = case_when(values == "1" ~ "Having baby/Pregnant/tested at antenatal clinic, etc.",
+values == "2" ~ "Recommended by health worker",
+values == "3" ~ "Was sick/having symptoms of HIV/AIDS, TB", 
+values == "4" ~ "Spouse/partner asked me to get tested",
+values == "5" ~ "Getting married",
+values == "6" ~ "Wanted to know status", 
+values == "7" ~ "I had risky behavior",
+values == "8" ~ "Spouse/partner had risky behavior",
+values == "9" ~ "To access benefits (food, treatment, etc.)",
+values == "10" ~ "For insurance",
+values == "11" ~ "Research project",
+values == "12" ~ "My friends were going/tested",
+values == "13" ~ "For VMMC", 
+values == "98" ~ "Other", 
+values == "97" ~ "Decline to Answer")) %>%
+  count(Grp130_Grp131_Q72) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## The LAST time you were tested, where were you tested for HIV?
+```{r}
+DF %>%
+  filter(!is.na(Grp130_Grp131_Q73)) %>%
+  mutate(Grp130_Grp131_Q73 = car::recode(Grp130_Grp131_Q73, "1='ANC/MCH center'; 
+                                                             2='Testing center/VCT'; 
+                                                             3='Government Hospital'; 
+                                                             4='Private Hospital';
+                                                             5='Mission hospital';
+                                                             6='Public clinic'; 
+                                                             7='Private doctor'; 
+                                                             8='Mobile testing centers'; 
+                                                             9='VMMC';
+                                                            98='Other'")) %>%
+  count(Grp130_Grp131_Q73) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## What were the results of your most recent HIV test?
+```{r}
+DF %>%
+  filter(!is.na(Grp130_Grp131_Q74)) %>%
+  count(Grp130_Grp131_Q74) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever told anyone the results of your HIV test(s)?
+```{r}
+DF %>%
+  filter(!is.na(Grp130_Grp131_Q75)) %>%
+  mutate(Grp130_Grp131_Q75 = car::recode(Grp130_Grp131_Q75, "1='Yes';
+                                                             2='No';
+                                                            97='Decline to answer';
+                                                            99='Do not know'")) %>%
+  count(Grp130_Grp131_Q75) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## If yes, who did you tell?
+```{r}
+Multiple.Selection <- strsplit(DF$Grp130_Grp131_Q76, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  mutate(values = as.character(values),
+    Grp130_Grp131_Q76 = case_when(values == "1" ~ "Spouse", 
+values == "2" ~ "Boyfriend/Girlfriend",
+values == "3" ~ "Regular partner (mistress/small house)",
+values == "4" ~ "Casual partner", 
+values == "5" ~ "Commercial sex worker", 
+values == "6" ~ "Family members", 
+values == "7" ~ "Other relatives", 
+values == "8" ~ "A friend", 
+values == "9" ~ "A health worker", 
+values == "10" ~ "A priest or pastor", 
+values == "11" ~ "Your employer",  
+values == "98" ~ "Someone else not listed here")) %>%
+  count(Grp130_Grp131_Q76) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## If no, what were the reasons you did not tell anyone of your HIV test results?
+```{r}
+Multiple.Selection <- strsplit(DF$Grp130_Grp131_Q77, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  mutate(values = as.character(values),
+    Grp130_Grp131_Q77 = case_when(values == "1" ~ "Fear of rejection", 
+values == "2" ~ "Fear of physical abuse", 
+values == "3" ~ "Fear of upsetting them", 
+values == "4" ~ "Embarrassment",
+values == "5" ~ "HIV status is a personal issue/I wanted to keep the results secret", 
+values == "6" ~ "Fear of stigma",
+values == "98" ~ "Other",
+values == "99" ~ "Do not know",
+values == "97" ~ "Decline to Answer")) %>%
+  count(Grp130_Grp131_Q77) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+# Module 6: Pre-Exposure Prophylaxis
+## Do you think it is important or not important for young men, women or both to take PrEP to protect them from HIV?
+```{r}
+DF %>%
+  filter(!is.na(Q78)) %>%
+  mutate(Q78 = as.character(Q78),
+         Q78 = case_when(Q78 == "1" ~ "Yes - important for men and women",
+Q78 == "2" ~ "Yes - Important for WOMEN only",
+Q78 == "3" ~ "Yes - Important for MEN only",
+Q78 == "4" ~ "No-not important for MEN only",
+Q78 == "5" ~ "No-not important for WOMEN only",
+Q78 == "6" ~ "No-not important for men or women",
+Q78 == "98" ~ "Other",
+Q78 == "99" ~ "Do not know")) %>%
+  count(Q78) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+### If Yes, why?
+```{r}
+DF %>%
+  filter(!is.na(Q79a)) %>%
+  count(Q79a) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+### If No, why?
+```{r}
+DF %>%
+  filter(!is.na(Q79b)) %>%
+  count(Q79b) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## In a relationship, if one person is HIV+ and one is HIV-, with which of the following statements do you agree?
+```{r}
+DF %>%
+  filter(!is.na(Q80)) %>%
+  mutate(Q80 = as.character(Q80),
+         Q80 = case_when(Q80 == "1" ~ "Best for HIV positive person to take ARVs",
+Q80 == "2" ~ "Best for HIV negative person to take PrEP",
+Q80 == "3" ~ "Best for Both HIV+ to take ARVs and HIV- to take PrEP")) %>%
+  count(Q80) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## Would you ever take PrEP to lower your risk of getting HIV?
+```{r}
+DF %>%
+  filter(!is.na(Q81)) %>%
+  mutate(Q81 = as.character(Q81),
+         Q81 = case_when(Q81 == "1" ~ "Yes",
+Q81 == "2" ~ "No",
+Q81 == "99" ~ "Do not know")) %>%
+  count(Q81) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## Where would you want to get PrEP? Where is the best place for you?
+```{r}
+DF %>%
+  filter(!is.na(Q82)) %>%
+  mutate(Q82 = as.character(Q82),
+         Q82 = case_when(Q82 == "1" ~ "Government hospital or clinic",
+Q82 == "2" ~ "Private Hospital or clinic",
+Q82 == "3" ~ "Family Planning Clinic",
+Q82 == "4" ~ "Private Doctor",
+Q82 == "5" ~ "Mobile health clinic",
+Q82 == "6" ~ "TBA/CHW",
+Q82 == "7" ~ "Traditional healer",
+Q82 == "98" ~ "Other",
+Q82 == "99" ~ "Do not know",
+Q82 == "97" ~ "Decline to Answer")) %>%
+  count(Q82) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## What would make you want to take PrEP?
+```{r}
+Multiple.Selection <- strsplit(DF$Q83, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  filter(!is.na(values)) %>%
+  mutate(values = as.character(values),
+    Q83 = case_when(values == "1" ~ "If I had a high risk of HIV",
+values == "2" ~ "If my partner was HIV+",
+values == "3" ~ "Protection against HIV",
+values == "4" ~ "Nothing would make me take it",
+values == "98" ~ "Other",
+values == "99" ~ "Do not know",
+values == "97" ~ "Decline to Answer")) %>%
+  count(Q83) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## What would keep you from taking PrEP?
+```{r}
+Multiple.Selection <- strsplit(DF$Q84, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  filter(!is.na(values)) %>%
+  mutate(values = as.character(values),
+    Q84 = case_when(values == "1" ~ "Embarrassment",
+values == "2" ~ "I don't think it will work",
+values == "3" ~ "Fear of being judged",
+values == "4" ~ "I don't want to get refills",
+values == "5" ~ "Not wanting to be seen at clinic",
+values == "6" ~ "I have no money to pay",
+values == "7" ~ "Location is too far away",
+values == "8" ~ "My parent's/caregiver's reaction",
+values == "9" ~ "My sexual partner's reaction",
+values == "10" ~ "My friend's reaction",
+values == "11" ~ "I do not have transportation",
+values == "12" ~ "Services are not youth friendly",
+values == "13" ~ "I don't know where to go",
+values == "14" ~ "I don't feel it is necessary",
+values == "15" ~ "I don't want to know HIV status",
+values == "16" ~ "Provider will not take my concerns seriously",
+values == "17" ~ "Religious beliefs",
+values == "18" ~ "The wait at the clinic is too long",
+values == "19" ~ "There is nothing stopping me",
+values == "98" ~ "Other",
+values == "99" ~ "Do not know",
+values == "97" ~ "Decline to Answer")) %>%
+  count(Q84) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+# Module 7: Antiretroviral Therapy
+## It is important for HIV positive youth to take ARVs.
+```{r}
+DF %>%
+  mutate(Q85 = car::recode(Q85, "1='Strongly Disagree'; 
+                                 2='Disagree';
+                                 3='Agree';
+                                 4='Strongly Agree';
+                                99='Do not know';
+                                97='Decline to Answer'"),
+         Q85 = ordered(Q85, levels=c('Strongly Disagree','Disagree','Agree','Strongly Agree','Do not know','Decline to Answer'))) %>%
+  count(Q85) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## If you were HIV positive, what would get in the way of you taking ARVs?
+```{r}
+Multiple.Selection <- strsplit(DF$Q86, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  filter(!is.na(values)) %>%
+  mutate(values = as.character(values),
+    Q86 = case_when(values == "1" ~	"Embarrassment",
+values == "2" ~	"I don't think it will work",
+values == "3" ~	"Fear of being judged",
+values == "4" ~	"I don't want to get refills",
+values == "5" ~	"Not wanting to be seen at clinic",
+values == "6" ~	"I have no money to pay",
+values == "7" ~	"Location is too far away",
+values == "8" ~	"My parent's/caregiver's reaction",
+values == "9" ~	"My sexual partner's reaction",
+values == "10" ~	"My friend's reaction",
+values == "11" ~	"I do not have transportation",
+values == "12" ~	"Services are not youth friendly", 
+values == "13" ~	"I don't know where to go",
+values == "14" ~	"I don't feel it is necessary",
+values == "15" ~	"I don't want to know HIV status",
+values == "16" ~	"Provider will not take my concerns seriously",
+values == "17" ~	"Religious beliefs",
+values == "18" ~	"The wait at the clinic is too long",
+values == "19" ~	"There is nothing stopping me",
+values == "98" ~	"Other",
+values == "99" ~	"Do not know",
+values == "97" ~	"Decline to Answer")) %>%
+  count(Q86) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## If you were HIV positive, what would help you take ARVs?
+```{r}
+DF %>%
+  count(Q87) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## Where would you want to get ARVs?
+```{r}
+Multiple.Selection <- strsplit(DF$Q88, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  filter(!is.na(values)) %>%
+  mutate(values = as.character(values),
+    Q88 = case_when(values == "1" ~	"Government hospital or clinic", 
+values == "2" ~	"Private Hospital or clinic",
+values == "3" ~	"Family Planning Clinic",
+values == "4" ~	"Private Doctor",
+values == "5" ~	"School",
+values == "6" ~	"Mobile health clinic",
+values == "7" ~	"TBA/CHW",
+values == "8" ~	"Traditional healer",
+values == "98" ~	"Other",
+values == "99" ~	"Do not know",
+values == "97" ~	"Decline to Answer")) %>%
+  count(Q88) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+# Module 8: Family Planning
+## It is important for young people to use family planning methods, like condoms or hormonal contraceptives such as Depo to delay or avoid pregnancy.
+```{r}
+DF %>%
+  mutate(Q89 = car::recode(Q89, "1='Strongly Disagree'; 
+                                 2='Disagree';
+                                 3='Agree';
+                                 4='Strongly Agree';
+                                99='Do not know';
+                                97='Decline to Answer'"),
+         Q89 = ordered(Q89, levels=c('Strongly Disagree','Disagree','Agree','Strongly Agree','Do not know','Decline to Answer'))) %>%
+  count(Q89) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Have you ever done something or used any method to delay or avoid getting pregnant?
+```{r}
+DF %>%
+  mutate(Q90 = car::recode(Q90, "1='Yes';2='No';97='Decline to Answer';99='Do Not Know'")) %>%
+  count(Q90) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## Are you currently doing something or using any method to delay or avoid getting pregnant?
+```{r}
+DF %>%
+  filter(Q90 == 1) %>%
+  mutate(Q91 = car::recode(Q91, "1='Yes';2='No';97='Decline to Answer';99='Do Not Know'")) %>%
+  count(Q91) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  knitr::kable()
+```
+
+## If NO, why are you not using any method to delay/prevent getting pregnant?
+```{r}
+DF %>%
+  filter(!is.na(Q92)) %>%
+  mutate(Q92 = as.character(Q92),
+         Q92 = case_when(Q92 == "1" ~ "Not having sex with anyone now",
+Q92 == "2" ~ "Already pregnant",
+Q92 == "3" ~ "Want to get pregnant", 
+Q92 == "4" ~ "Not able to get pregnant", 
+Q92 == "5" ~ "Against my personal beliefs", 
+Q92 == "6" ~ "FP services unavailable",
+Q92 == "7" ~ "Embarrassed to get FP",
+Q92 == "8" ~ "I don't want to use FP",
+Q92 == "9" ~ "My partner doesn't want me to",
+Q92 == "10" ~ "Side Effects",
+Q92 == "98" ~ "Other",
+Q92 == "99" ~ "Do not know",
+Q92 == "97" ~ "Decline to Answer")) %>%
+  count(Q92) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## If YES, which method are you using?
+```{r}
+Multiple.Selection <- strsplit(DF$Q93, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  filter(!is.na(values)) %>%
+  mutate(values = as.character(values),
+    Q93 = case_when(values == "1" ~ "Male condom",
+values == "2" ~ "Female condom",
+values == "3" ~ "Pill",
+values == "4" ~ "Injectables",
+values == "5" ~ "IUD",
+values == "6" ~ "Implants",
+values == "7" ~ "Diaphragm",
+values == "8" ~ "Lactational Amen. Method", 
+values == "9" ~ "Foam/jelly",
+values == "10" ~ "Withdrawal",
+values == "11" ~ "Rhythm method",
+values == "12" ~ "Emergency contraception",
+values == "13" ~ "Female sterilization",
+values == "14" ~ "Male sterilization",
+values == "15" ~ "Abstain",
+values == "98" ~ "Other", 
+values == "99" ~ "Do not know",
+values == "97" ~ "Decline to Answer")) %>%
+  count(Q93) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## If YES, who chose the method you (or your partner) are using?
+```{r}
+DF %>%
+  filter(!is.na(Q94)) %>%
+  mutate(Q94 = as.character(Q94),
+         Q94 = case_when(Q94 == "1" ~ "Me",
+                         Q94 == "2" ~ "Partner",
+                         Q94 == "3" ~ "Together",
+                         Q94 == "98" ~ "Other")) %>%
+  count(Q94) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## Have any of these issues ever stopped, delayed or discouraged you from getting, or continuing with family planning?
+```{r}
+Multiple.Selection <- strsplit(DF$Q95, " ")
+Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
+Multiple.Selection <- stack(Multiple.Selection)
+Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
+
+Multiple.Selection %>%
+  mutate(values = as.character(values),
+    Q95 = case_when(values == '1' ~ "Embarrassment",
+values == '2' ~ "I don't think it will work",
+values == '3' ~ "Fear of being judged",
+values == '4' ~ "I don't want to get refills",
+values == '5' ~ "Not wanting to be seen at clinic",
+values == '6' ~ "I have no money to pay",
+values == '7' ~ "Location is too far away",
+values == '8' ~ "My parent's/caregiver's reaction",
+values == '9' ~ "My sexual partner's reaction",
+values == '10' ~ "My friend's reaction",
+values == '11' ~ "I do not have transportation",
+values == '12' ~ "Services are not youth friendly", 
+values == '13' ~ "I don't know where to go",
+values == '14' ~ "I don't feel it is necessary",
+values == '15' ~ "I don't want to know HIV status",
+values == '16' ~ "Provider will not take my concerns seriously",
+values == '17' ~ "Religious beliefs",
+values == '18' ~ "The wait at the clinic is too long",
+values == '19' ~ "There is nothing stopping me",
+values == '98' ~ "Other",
+values == '99' ~ "Do not know",
+values == '97' ~ "Decline to Answer")) %>%
+  count(Q95) %>%
+  mutate(Percent = round(n/length(unique(Multiple.Selection$ind)) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+# Module 9: HIV Testing Options offered in GIRLS Study
+## Which of the HIV testing options did you choose?
+```{r}
+DF %>%
+  mutate(Q96 = car::recode(Q96, "1='Immediate HIV testing with study staff';
+                                 2='Oral HIV self-testing';
+                                 3='Referral to a healthcare facility'")) %>%
+  count(Q96) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+## Why did you choose the testing option that you selected?
+```{r}
+DF %>%
+  mutate(Q97 = car::recode(Q97, "1='Convenience';        
+                                 2='Privacy';
+                                 3='Trust (the kit)';
+                                 4='Trust (study staff/health worker)';
+                                 5='Fear of disclosure';
+                                98='Other';
+                                99='Do not know'; 
+                                97='Decline to answer'")) %>%
+  count(Q97) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+```{r, eval=FALSE}
+file.rename(from = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/CAPI-Summaries-19June2017.html", 
+            to = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/index.html")
+```
+
+```{r, eval=FALSE}
+# https://github.com/opendatakit/
+
+meta.DF <- data.frame(df1 = unlist(lapply(Girls.CSV.list[[1]], typeof)), 
+                      df2 = unlist(lapply(Girls.CSV.list[[2]], typeof)))
+
+meta.DF <- mutate(meta.DF, Item = row.names(meta.DF))
+
+meta.DF %>% 
+  filter(df1 != df2)
+
+BL.Capi.Col.Types <- meta.DF$df2
+
+save(list=c('BL.Capi.Col.Types'), 
+     file = "c:/chuck/NYU/Kurth/High Yield Testing/Data/ctypes.RData")
+```
+

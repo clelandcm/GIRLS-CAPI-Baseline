@@ -36,7 +36,7 @@ library(scales)
 load("c:/chuck/NYU/Kurth/High Yield Testing/Data/ctypes.RData", .GlobalEnv)
 Girls.CSV.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/', pattern = ".csv$|.CSV$", full.names = TRUE)
 Girls.CSV.list <- vector(mode="list", length = length(Girls.CSV.files))
-for(i in 1:length(Girls.CSV.list)){Girls.CSV.list[[i]] <- read_csv(file = Girls.CSV.files[i], col_types = cols(`Grp7:Q36a` = 'i',
+for(i in 1:length(Girls.CSV.list[1:2])){Girls.CSV.list[[i]] <- read_csv(file = Girls.CSV.files[i], col_types = cols(`Grp7:Q36a` = 'i',
                                                                                                                `Grp7:Q53` = 'c',
                                                                                                                `Grp7:Q53b` = 'i',
                                                                                                                `Grp7:Q53d` = 'i',
@@ -54,6 +54,11 @@ DF <- bind_rows(Girls.CSV.list[1:2], .id = "file_from")
 names(DF) <- gsub(":", "_", names(DF))
 
 DF <- as.data.table(DF)
+
+HTC <- bind_rows(read_csv(Girls.CSV.files[5]), read_csv(Girls.CSV.files[4]))
+HTC <- as.data.table(HTC)
+names(HTC) <- gsub("group2:|group1:|group3:|group5:", "", names(HTC))
+names(HTC) <- gsub(":", "_", names(HTC))
 ```
 
 # Duplicated ID Numbers
@@ -1783,6 +1788,15 @@ DF %>%
                                 99='Do not know'; 
                                 97='Decline to answer'")) %>%
   count(Q97) %>%
+  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+# HTC
+```{r}
+HTC %>%
+  count(HIV1) %>%
   mutate(Percent = round(prop.table(n) * 100, 1)) %>%
   arrange(desc(n)) %>%
   knitr::kable()

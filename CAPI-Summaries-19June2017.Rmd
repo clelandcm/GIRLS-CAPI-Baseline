@@ -55,13 +55,22 @@ names(DF) <- gsub(":", "_", names(DF))
 
 DF <- as.data.table(DF)
 
+REPEATs <- read_csv(Girls.CSV.files[3])
+
+names(REPEATs) <- gsub(":", "_", names(REPEATs))
+
 HTC <- bind_rows(read_csv(Girls.CSV.files[5]), read_csv(Girls.CSV.files[4]))
 HTC <- as.data.table(HTC)
 names(HTC) <- gsub("group2:|group1:|group3:|group5:", "", names(HTC))
 names(HTC) <- gsub(":", "_", names(HTC))
+
+all.ID <- unique(c(DF$PUID, REPEATs$PUID, HTC$PTID))
+
+tracker <- data.frame(PUID = all.ID, CAPI1 = all.ID %in% DF$PUID, CAPI2 = all.ID %in% REPEATs$PUID, HTC = all.ID %in% HTC$PTID)
 ```
 
-# Duplicated ID Numbers
+# Issues with ID Numbers
+## Duplicated ID Numbers
 ```{r}
 DF %>% 
   filter(PUID %in% DF$PUID[duplicated(DF$PUID)]) %>% 
@@ -69,11 +78,19 @@ DF %>%
   knitr::kable()
 ```
 
-# Incomplete ID Numbers
+## Incomplete ID Numbers
 ```{r}
 DF %>%
   filter(nchar(PUID) != 13) %>%
   select(PUID, date, InterNo, meta_instanceID, start, end) %>%
+  knitr::kable()
+```
+
+## ID Numbers Appearing Only in Repeats File
+```{r}
+tracker %>% 
+  filter(!CAPI1 & CAPI2) %>%
+  select(PUID, CAPI1, CAPI2) %>%
   knitr::kable()
 ```
 

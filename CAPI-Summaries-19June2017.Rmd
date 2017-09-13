@@ -16,7 +16,7 @@ always_allow_html: yes
 
 ```{r setup, include=FALSE}
 options(width = 150)
-knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, comment=NA, fig.height = 7, fig.width = 10)
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, comment=NA, fig.height = 7, fig.width = 10, dpi = 600)
 ```
 
 ```{r, echo = FALSE}
@@ -34,80 +34,181 @@ library(scales)
 # Read in CSV Data
 
 load("c:/chuck/NYU/Kurth/High Yield Testing/Data/ctypes.RData", .GlobalEnv)
-Girls.CSV.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/', pattern = ".csv$|.CSV$", full.names = TRUE)
-Girls.CSV.list <- vector(mode="list", length = length(Girls.CSV.files))
-for(i in 1:length(Girls.CSV.list[1:2])){Girls.CSV.list[[i]] <- read_csv(file = Girls.CSV.files[i], col_types = cols(`Grp7:Q36a` = 'i',
+
+Girls.CSV.capibl.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/capibl/', pattern = ".csv$|.CSV$", full.names = TRUE)
+Girls.CSV.capibl.list <- vector(mode="list", length = length(Girls.CSV.capibl.files))
+
+Girls.CSV.htc.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/htc/', pattern = ".csv$|.CSV$", full.names = TRUE)
+Girls.CSV.htc.list <- vector(mode="list", length = length(Girls.CSV.htc.files))
+
+Girls.CSV.elg.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/genelg/', pattern = ".csv$|.CSV$", full.names = TRUE)
+Girls.CSV.elg.list <- vector(mode="list", length = length(Girls.CSV.elg.files))
+
+for(i in 1:length(Girls.CSV.capibl.list)){Girls.CSV.capibl.list[[i]] <- read_csv(file = Girls.CSV.capibl.files[i], col_types = cols(
+                                                                                                               `Grp7:Q36d` = 'i',
+                                                                                                               `Grp7:Q36a` = 'i',
                                                                                                                `Grp7:Q53` = 'c',
                                                                                                                `Grp7:Q53b` = 'i',
                                                                                                                `Grp7:Q53d` = 'i',
                                                                                                                `Grp7:Q53e` = 'i',
+                                                                                                               `Grp7:Q49` = 'i',
+                                                                                                               `Q28` = 'c',
+                                                                                                               `Q65` = 'c',
+                                                                                                               `Grp130:Grp131:Q70a` = 'c',
+                                                                                                               `Grp130:Grp131:Q70b` = 'i',
+                                                                                                               `Grp130:Grp131:Q70d` = 'i',
+                                                                                                               `Grp130:Grp131:Q76` = 'c',
+                                                                                                               `Grp130:Grp131:Q77` = 'c',
+                                                                                                               `Q83` = 'c',
+                                                                                                               `Q84` = 'c',
+                                                                                                               `Q88` = 'c',
+                                                                                                               `Q93` = 'c',
+                                                                                                               `Q95` = 'c'))}
+
+names(Girls.CSV.capibl.list) <- Girls.CSV.capibl.files
+
+DF <- bind_rows(Girls.CSV.capibl.list, .id = "file_from")
+names(DF) <- gsub(":", "_", names(DF))
+
+DF <- as.data.table(DF)
+
+REPEATs <- read_csv("c:/chuck/NYU/Kurth/High Yield Testing/Data/repeats/01___BASELINE_BEHAVIORAL_SURVEY___GIRLS__REPEAT_CLIENTS____20th_June_2017_results.csv", col_types = cols(
+                                                                                                               `Grp7:Q36d` = 'i',
+                                                                                                               `Grp7:Q36a` = 'i',
+                                                                                                               `Grp7:Q53` = 'c',
+                                                                                                               `Grp7:Q53b` = 'i',
+                                                                                                               `Grp7:Q53d` = 'i',
+                                                                                                               `Grp7:Q53e` = 'i',
+                                                                                                               `Grp7:Q49` = 'i',
+                                                                                                               `Q28` = 'c',
                                                                                                                `Grp130:Grp131:Q70a` = 'c',
                                                                                                                `Grp130:Grp131:Q70b` = 'i',
                                                                                                                `Grp130:Grp131:Q70d` = 'i',
                                                                                                                `Grp130:Grp131:Q77` = 'c',
                                                                                                                `Q88` = 'c',
                                                                                                                `Q93` = 'c',
-                                                                                                               `Q95` = 'c'))}
-names(Girls.CSV.list) <- Girls.CSV.files
-
-DF <- bind_rows(Girls.CSV.list[1:2], .id = "file_from")
-names(DF) <- gsub(":", "_", names(DF))
-
-DF <- as.data.table(DF)
-
-REPEATs <- read_csv(Girls.CSV.files[3])
+                                                                                                               `Q95` = 'c'))
 
 names(REPEATs) <- gsub(":", "_", names(REPEATs))
 
-HTC <- bind_rows(read_csv(Girls.CSV.files[5]), read_csv(Girls.CSV.files[4]))
+for(i in 1:length(Girls.CSV.htc.list)){Girls.CSV.htc.list[[i]] <- read_csv(file = Girls.CSV.htc.files[i], col_types = cols(`Couple` = 'i'))}
+
+names(Girls.CSV.htc.list) <- Girls.CSV.htc.files
+
+HTC <- bind_rows(Girls.CSV.htc.list, .id = "file_from")
+
 HTC <- as.data.table(HTC)
 names(HTC) <- gsub("group2:|group1:|group3:|group5:", "", names(HTC))
 names(HTC) <- gsub(":", "_", names(HTC))
 
-all.ID <- unique(c(DF$PUID, REPEATs$PUID, HTC$PTID))
+for(i in 1:length(Girls.CSV.elg.list)){Girls.CSV.elg.list[[i]] <- read_csv(file = Girls.CSV.elg.files[i])}
 
-tracker <- data.frame(PUID = all.ID, CAPI1 = all.ID %in% DF$PUID, CAPI2 = all.ID %in% REPEATs$PUID, HTC = all.ID %in% HTC$PTID)
+names(Girls.CSV.elg.list) <- Girls.CSV.elg.files
+
+ELG <- bind_rows(Girls.CSV.elg.list, .id = "file_from")
+
+DF$PUID[DF$PUID == "12-0046-01-01" & DF$Q2 == 23] <- "12-0047-01-01"
+DF$PUID[DF$PUID == "12-0050"] <- "12-0050-01-01"
+REPEATs$PUID[REPEATs$PUID == "06-0024-01-01"] <- "08-0024-01-01"
+
+# Rao email on July 13, 2017 and Nok Chhun email on August 21, 2017
+DF <- DF %>% filter(!(PUID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01")))
+HTC <- HTC %>% filter(!(PTID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01")))
+REPEATs <- REPEATs %>% filter(!(PUID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01")))
+
+all.ID <- unique(c(DF$PUID, REPEATs$PUID, HTC$PTID, ELG$PUID))
+
+tracker <- data.frame(PUID = all.ID, ELG = all.ID %in% ELG$PUID, CAPI1 = all.ID %in% DF$PUID, CAPI2 = all.ID %in% REPEATs$PUID, HTC = all.ID %in% HTC$PTID)
+```
+
+# Check these ID Numbers for Problems
+## In CAPI or HTC But Not General Eligibility Screening
+```{r}
+tracker %>% 
+  select(PUID, ELG, CAPI1, HTC) %>% 
+  filter(!ELG & (CAPI1 | HTC)) %>% 
+  arrange(ELG, CAPI1, HTC)
+```
+
+## In CAPI But Not HTC
+```{r}
+tracker %>% 
+  select(PUID, ELG, CAPI1, HTC) %>% 
+  filter(ELG & CAPI1 & !HTC) %>% 
+  arrange(ELG, CAPI1, HTC)
+```
+
+## ID Numbers Not in Correct Format
+```{r}
+tracker %>% 
+  select(PUID, ELG, CAPI1, HTC) %>% 
+  filter(nchar(as.character(PUID)) != 13) %>% 
+  arrange(PUID, ELG, CAPI1, HTC)
 ```
 
 # Issues with ID Numbers
 ## Duplicated ID Numbers
 ```{r}
+if(any(duplicated(DF$PUID))){
 DF %>% 
   filter(PUID %in% DF$PUID[duplicated(DF$PUID)]) %>% 
   select(PUID, date, InterNo, meta_instanceID, start, end) %>%
   knitr::kable()
+} else{
+  print("No duplicated ID numbers at this time")
+}
 ```
 
 ## Incomplete ID Numbers
 ```{r}
+if(any(nchar(DF$PUID) != 13)){
 DF %>%
   filter(nchar(PUID) != 13) %>%
   select(PUID, date, InterNo, meta_instanceID, start, end) %>%
   knitr::kable()
+} else{
+  print("No incomplete ID numbers at this time")
+} 
 ```
 
-## ID Numbers Appearing Only in Repeats File
 ```{r}
-tracker %>% 
-  filter(!CAPI1 & CAPI2) %>%
-  select(PUID, CAPI1, CAPI2) %>%
-  knitr::kable()
+# Add Items from First Interview to REPEATs 
+REPEATs <- left_join(REPEATs, DF %>% 
+                       select(PUID, file_from, Q3, Q4, Q5, Q5a, Q6, Q7, CountyLive, SubCountyLive, DivisionLive,
+                              LocationLive, Q8, Q9, Q9a, Q10, Q11, Q13, Q13a, Q14, Q14a, Q15, Q15a, grp5_Note5,
+                              grp5_Note5a, grp5_ack1, grp5_Note6, Q16, Q17, Note7a, Q18, Q19, Q20, Q21, Q22, Q22a,
+                              Q23, Q24, Note8a, Note8b, Q25, Q26, grp6_Note8, grp6_Note8a, grp6_ack2, grp6_Note9,
+                              Q27, Q27a, Q28, Q28a, Q29, Q30, Q62, Grp12_Note16c, Grp12_Note16d, Grp12_Note17,
+                              Note18, Q63, Q63a, Q64, Q65, Q65a, Grp13_head, Grp13_Q66a, Grp13_Q66b, Grp13_Q66c,
+                              Grp13_Q66d, Grp13_Q66e, Grp13_Q66f, Grp13_Q66g, Grp13_Q66h, Grp13_Q66i, Grp13_Q66j,
+                              Grp13_Q66k, Grp13_Q66l, Grp13_Q66m, Grp13_Q66n, Grp13_Q66o, Grp13_Q66p, Q66p1, Q67,
+                              Q67a, Q68, Grp130_Q69, Grp130_Q69a, Grp130_Grp131_Q70, Grp130_Grp131_Q70a, Grp130_Grp131_Q70b,
+                              Grp130_Grp131_Q70c, Grp130_Grp131_Q70d, Grp130_Grp131_Q71, Grp130_Grp131_Q71a, Grp130_Grp131_Q72,
+                              Grp130_Grp131_Q72a, Grp130_Grp131_Q73, Grp130_Grp131_Q73a, Grp130_Grp131_Q74, Grp130_Grp131_Q74a,
+                              Grp130_Grp131_Q75, Grp130_Grp131_Q76, Grp130_Grp131_Q76a, Grp130_Grp131_Q77, Grp130_Grp131_Q77a,
+                              Grp15_Note20a, Grp15_Note20, Grp15_ack4, Q78, Q78a, Q79a, Q79b, Q80, Q81, Q82, Q82a, Q83, Q83a,
+                              Q84, Q84a, Grp16_Note21a, Grp16_Note21, Grp16_ack5, Q85, Q86, Q86a, Q87, Q88, Q88a, Grp17_Note22a,
+                              Grp17_Note22, Grp17_Note23, Q89, Q90, Q91, Q92, Q92a, Q93, Q93a, Q94, Q94a, Q95, Q95a, NoteMod9,
+                              NoteMo9a, Q96, Q97, Q97a, Grp19_Note26, Grp19_Note27, Grp19_Note25, Grp19x_Note29, Grp19x_Note30,
+                              Grp19x_Note31, Grp19x_SelfTest, Grp19x_HRiskNeg))
+
+DF <- full_join(DF, REPEATs %>% filter(PUID != "06-0064-01-01" & PUID != "06-0024-01-01" & PUID != "12-0047-01-01"))
+
+DF <- DF %>%
+  group_by(PUID) %>%
+  filter(date == max(date)) %>%
+  ungroup()
 ```
 
 # Interview Date
 ```{r}
-DF %>% 
-  count(date) %>%
-  mutate(Percent = round(prop.table(n) * 100, 1)) %>%
-  knitr::kable()
-
 DF %>%
   ggplot(aes(x = as.Date(date))) + 
   geom_histogram(fill="#4169E1", color = "white") +
   theme_minimal() +
   theme(text = element_text(size=16),
         axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_x_date(date_breaks = "2 days") +
+  scale_x_date(date_breaks = "7 days") +
   xlab("")
 ```
 
@@ -116,6 +217,7 @@ DF %>%
 DF %>% 
   count(InterNo) %>%
   mutate(Percent = round(prop.table(n) * 100, 1)) %>%
+  arrange(desc(n)) %>%
   knitr::kable()
 ```
 
@@ -129,8 +231,8 @@ DF %>%
 
 DF %>% 
   summarize(n = n(),
-            Mean = mean(Q2, na.rm = TRUE),
-            sd = sd(Q2, na.rm = TRUE),
+            Mean = round(mean(Q2, na.rm = TRUE), 1),
+            sd = round(sd(Q2, na.rm = TRUE), 1),
             Median = median(Q2, na.rm = TRUE),
             IQR = IQR(Q2, na.rm = TRUE),
             Min = min(Q2, na.rm = TRUE),
@@ -138,12 +240,14 @@ DF %>%
   knitr::kable()
 
 DF %>%
-  ggplot(aes(x = Q2)) + 
-  geom_histogram(fill="#4169E1", color = "white") +
+  group_by(Q2) %>%
+  tally() %>%
+  rename(`Age at Last Birthday` = Q2, `Number of Girls` = n) %>%
+  ggplot(aes(x = `Age at Last Birthday`, y = `Number of Girls`)) + 
+  geom_bar(stat = 'identity', fill="#4169E1", color = "white") +
+  scale_x_continuous(limits = c(14.5,23.5), breaks = seq(15,23,1)) +
   theme_minimal() +
-  theme(text = element_text(size=16)) +
-  scale_x_continuous(limits = c(14,24), breaks = seq(14,24,1)) +
-  xlab("Age at Last Birthday")
+  theme(text = element_text(size=16))
 ```
 
 ## School Attendance
@@ -248,7 +352,8 @@ DF %>%
                                  4='Not married, cohabiting/living together';	
                                  5='Not married, multiple partners';
                                  6='Divorced/Separated';
-                                 7='Widowed'")) %>%
+                                 7='Widowed';
+                                98='Other'")) %>%
   count(Q12) %>%
   mutate(Percent = round(prop.table(n) * 100, 1)) %>%
   knitr::kable()
@@ -1170,10 +1275,10 @@ DF %>%
                               Response == "98" ~ "98",
                               Response == "99" ~ "99")) %>%
   group_by(Item) %>%
-  summarize(`No n` = sum(Response == 'No'),
-            `No %` = round(mean(Response == 'No') * 100, 1),
-            `Yes n` = sum(Response == 'Yes'),
-            `Yes %` = round(mean(Response == 'Yes') * 100, 1)) %>%
+  summarize(`No n` = sum(Response == 'No', na.rm = TRUE),
+            `No %` = round(mean(Response == 'No', na.rm = TRUE) * 100, 1),
+            `Yes n` = sum(Response == 'Yes', na.rm = TRUE),
+            `Yes %` = round(mean(Response == 'Yes', na.rm = TRUE) * 100, 1)) %>%
   mutate(`Total Yes or No` = `No n` + `Yes n`) %>%
   knitr::kable()
 ```
@@ -1820,12 +1925,10 @@ HTC %>%
 ```
 
 ```{r, eval=FALSE}
-file.rename(from = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/CAPI-Summaries-19June2017.html", 
-            to = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/index.html")
-```
-
-```{r, eval=FALSE}
 # https://github.com/opendatakit/
+# https://bitbucket.org/javarosa/javarosa/wiki/AuthenticationAPI
+# https://opendatakit.org/use/briefcase/
+# https://online.knh.or.ke:8443/ODKAggregate1/formList
 
 meta.DF <- data.frame(df1 = unlist(lapply(Girls.CSV.list[[1]], typeof)), 
                       df2 = unlist(lapply(Girls.CSV.list[[2]], typeof)))
@@ -1839,5 +1942,65 @@ BL.Capi.Col.Types <- meta.DF$df2
 
 save(list=c('BL.Capi.Col.Types'), 
      file = "c:/chuck/NYU/Kurth/High Yield Testing/Data/ctypes.RData")
+
+library(RCurl)
+library(XML)
+library(stringr)
+library(httr)
+
+aggresp <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+headers(aggresp)
+
+aggexp01 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=BFAS20052017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp02 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=BFSS20052017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp03 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=Eli20052017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp04 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=EliHIVPos20052017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp05 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=STS20052017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp06 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=EliHIVNeg09062017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp07 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=HTC+MoH+362_v09062017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp08 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=GIRLS19062017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp09 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=GIRLSRep20062017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+aggexp10 <- GET(url = "https://online.knh.or.ke:8443/ODKAggregate1/formXml?formId=GIRLS04072017", authenticate(user = "CCleland", password = "@Chuck1", type = "digest"))
+
+headers(aggexp01)
+headers(aggexp02)
+headers(aggexp03)
+headers(aggexp04)
+headers(aggexp05)
+headers(aggexp06)
+headers(aggexp07)
+headers(aggexp08)
+headers(aggexp09)
+headers(aggexp10)
+
+Girls.XML.files <- list.files("C:/chuck/NYU/Kurth/ODK Briefcase Storage/forms/", pattern = "submission.xml", recursive = TRUE, full.names = TRUE)
+Girls.XML.list <- vector(mode="list", length = length(Girls.XML.files))
+for(i in 1:length(Girls.XML.files)){Girls.XML.list[[i]] <- xmlToList(xmlParse(Girls.XML.files[i]))[[".attrs"]][1]}
+
+# Unique Form Names
+unique(unlist(Girls.XML.list))
+
+# system("c:/chuck/NYU/Kurth/exportall.bat", show.output.on.console = FALSE)
+
+Girls.CSV.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/ODKexport', pattern = ".csv$|.CSV$", full.names = TRUE)
+Girls.CSV.list <- vector(mode="list", length = length(Girls.CSV.files))
+names(Girls.CSV.list) <- gsub("c:/chuck/NYU/Kurth/High Yield Testing/Data/ODKexport/|_csv_.csv", "", Girls.CSV.files)
+
+for(i in 1:length(Girls.CSV.list)){
+  Girls.CSV.list[[i]] <- read_csv(file = Girls.CSV.files[i])
+}
+
+geneli <- full_join(Girls.CSV.list[['Eli20052017']], Girls.CSV.list[['Eli23082017']])
+
+capibl <- full_join(Girls.CSV.list[['GIRLS04072017']], Girls.CSV.list[['GIRLS19062017']]) %>%
+  full_join(Girls.CSV.list[['GIRLS23082017']]) %>%
+  full_join(Girls.CSV.list[['GIRLSRep20062017']])
+
+htc <- full_join(Girls.CSV.list[["HTC MoH 362_v09062017"]], Girls.CSV.list[["HTC MoH 362_v23082017"]])
+```
+
+```{r, eval=FALSE}
+file.rename(from = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/CAPI-Summaries-19June2017.html", 
+            to = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/index.html")
 ```
 

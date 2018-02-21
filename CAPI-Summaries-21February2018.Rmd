@@ -16,7 +16,7 @@ always_allow_html: yes
 
 ```{r setup, include=FALSE}
 options(width = 150)
-knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, comment=NA, fig.height = 7, fig.width = 10, dpi = 600)
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, comment=NA, fig.width = 6, fig.asp = 0.618, out.width = "80%", fig.align = "center", dpi=200, dev = "svg")
 ```
 
 ```{r, echo = FALSE}
@@ -30,105 +30,84 @@ library(ggplot2)
 library(scales)
 ```
 
-```{r, echo = FALSE}
+```{r}
+girls.dirs <- file.info(list.dirs("C:/Bsync/3. Server Backup Files"))
+most.recent.data.subfolder <- tail(rownames(girls.dirs[order(girls.dirs$ctime),]), n=1)
+```
+
+```{r}
 # Read in CSV Data
 
-load("c:/chuck/NYU/Kurth/High Yield Testing/Data/ctypes.RData", .GlobalEnv)
+capi.files <- list.files(most.recent.data.subfolder, pattern = "BASELINE_BEHAVIORAL_SURVEY___GIRLS____", full.names = TRUE)
+selftest.files <- list.files(most.recent.data.subfolder, pattern = "SELF_TESTING_SURVEY", full.names = TRUE)
+negcohort.files <- list.files(most.recent.data.subfolder, pattern = "HIV_Negative_Cohort", full.names = TRUE)
+poscohort.files <- list.files(most.recent.data.subfolder, pattern = "HIV_Positive_Cohort", full.names = TRUE)
+genelg.files <- list.files(most.recent.data.subfolder, pattern = "General_Eligibility_Criteria", full.names = TRUE)
+htcreg.files <- list.files(most.recent.data.subfolder, pattern = "Electronic_HTC_Register", full.names = TRUE)
+repcap <- read_csv(paste(most.recent.data.subfolder, 
+                         "01___BASELINE_BEHAVIORAL_SURVEY___GIRLS__REPEAT_CLIENTS____20th_June_2017_results.csv", sep="/")
+                   )
 
-Girls.CSV.capibl.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/capibl/', pattern = ".csv$|.CSV$", full.names = TRUE)
-Girls.CSV.capibl.list <- vector(mode="list", length = length(Girls.CSV.capibl.files))
+source("c:/chuck/NYU/Kurth/High Yield Testing/R Code/capi-column-types.r")
+```
 
-Girls.CSV.htc.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/htc/', pattern = ".csv$|.CSV$", full.names = TRUE)
-Girls.CSV.htc.list <- vector(mode="list", length = length(Girls.CSV.htc.files))
+```{r}
+capi.list <- lapply(capi.files, function(x){read_csv(file = x, col_types = capi.cols)})
+selftest.list <- lapply(selftest.files, function(x){read_csv(file = x)})
+negcohort.list <- lapply(negcohort.files, function(x){read_csv(file = x)})
+poscohort.list <- lapply(poscohort.files, function(x){read_csv(file = x)})
+genelg.list <- lapply(genelg.files, function(x){read_csv(file = x)})
+htcreg.list <- lapply(htcreg.files, function(x){read_csv(file = x, col_types = cols(`Couple` ='i'))})
 
-Girls.CSV.elg.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/genelg/', pattern = ".csv$|.CSV$", full.names = TRUE)
-Girls.CSV.elg.list <- vector(mode="list", length = length(Girls.CSV.elg.files))
+names(capi.list) <- capi.files
+names(selftest.list) <- selftest.files
+names(negcohort.list) <- negcohort.files
+names(poscohort.list) <- poscohort.files
+names(genelg.list) <- genelg.files
+names(htcreg.list) <- htcreg.files
 
-for(i in 1:length(Girls.CSV.capibl.list)){Girls.CSV.capibl.list[[i]] <- read_csv(file = Girls.CSV.capibl.files[i], col_types = cols(
-                                                                                                               `Grp7:Q36d` = 'i',
-                                                                                                               `Grp7:Q36a` = 'i',
-                                                                                                               `Grp7:Q53` = 'c',
-                                                                                                               `Grp7:Q53b` = 'i',
-                                                                                                               `Grp7:Q53d` = 'i',
-                                                                                                               `Grp7:Q53e` = 'i',
-                                                                                                               `Grp7:Q49` = 'i',
-                                                                                                               `Q28` = 'c',
-                                                                                                               `Q65` = 'c',
-                                                                                                               `Grp130:Grp131:Q70a` = 'c',
-                                                                                                               `Grp130:Grp131:Q70b` = 'i',
-                                                                                                               `Grp130:Grp131:Q70d` = 'i',
-                                                                                                               `Grp130:Grp131:Q76` = 'c',
-                                                                                                               `Grp130:Grp131:Q77` = 'c',
-                                                                                                               `Q83` = 'c',
-                                                                                                               `Q84` = 'c',
-                                                                                                               `Q88` = 'c',
-                                                                                                               `Q93` = 'c',
-                                                                                                               `Q95` = 'c'))}
+htc <- bind_rows(htcreg.list, .id = "file_from")
+elg <- bind_rows(genelg.list, .id = "file_from")
+neg <- bind_rows(negcohort.list, .id = "file_from")
+pos <- bind_rows(poscohort.list, .id = "file_from")
+slf <- bind_rows(selftest.list, .id = "file_from")
+cap <- bind_rows(capi.list, .id = "file_from")
 
-names(Girls.CSV.capibl.list) <- Girls.CSV.capibl.files
+names(cap) <- gsub(":", "_", names(cap))
 
-DF <- bind_rows(Girls.CSV.capibl.list, .id = "file_from")
-names(DF) <- gsub(":", "_", names(DF))
+DF <- as.data.table(cap)
+```
 
-DF <- as.data.table(DF)
-
-REPEATs <- read_csv("c:/chuck/NYU/Kurth/High Yield Testing/Data/repeats/01___BASELINE_BEHAVIORAL_SURVEY___GIRLS__REPEAT_CLIENTS____20th_June_2017_results.csv", col_types = cols(
-                                                                                                               `Grp7:Q36d` = 'i',
-                                                                                                               `Grp7:Q36a` = 'i',
-                                                                                                               `Grp7:Q53` = 'c',
-                                                                                                               `Grp7:Q53b` = 'i',
-                                                                                                               `Grp7:Q53d` = 'i',
-                                                                                                               `Grp7:Q53e` = 'i',
-                                                                                                               `Grp7:Q49` = 'i',
-                                                                                                               `Q28` = 'c',
-                                                                                                               `Grp130:Grp131:Q70a` = 'c',
-                                                                                                               `Grp130:Grp131:Q70b` = 'i',
-                                                                                                               `Grp130:Grp131:Q70d` = 'i',
-                                                                                                               `Grp130:Grp131:Q77` = 'c',
-                                                                                                               `Q88` = 'c',
-                                                                                                               `Q93` = 'c',
-                                                                                                               `Q95` = 'c'))
+```{r}
+REPEATs <- repcap
 
 names(REPEATs) <- gsub(":", "_", names(REPEATs))
 
-for(i in 1:length(Girls.CSV.htc.list)){Girls.CSV.htc.list[[i]] <- read_csv(file = Girls.CSV.htc.files[i], col_types = cols(`Couple` = 'i'))}
-
-names(Girls.CSV.htc.list) <- Girls.CSV.htc.files
-
-HTC <- bind_rows(Girls.CSV.htc.list, .id = "file_from")
-
-HTC <- as.data.table(HTC)
+HTC <- as.data.table(htc)
 names(HTC) <- gsub("group2:|group1:|group3:|group5:", "", names(HTC))
 names(HTC) <- gsub(":", "_", names(HTC))
 
-for(i in 1:length(Girls.CSV.elg.list)){Girls.CSV.elg.list[[i]] <- read_csv(file = Girls.CSV.elg.files[i])}
-
-names(Girls.CSV.elg.list) <- Girls.CSV.elg.files
-
-ELG <- bind_rows(Girls.CSV.elg.list, .id = "file_from")
+ELG <- elg
 
 DF$PUID[DF$PUID == "12-0046-01-01" & DF$Q2 == 23] <- "12-0047-01-01"
 DF$PUID[DF$PUID == "12-0050"] <- "12-0050-01-01"
 REPEATs$PUID[REPEATs$PUID == "06-0024-01-01"] <- "08-0024-01-01"
 
+Excluded_IDs <- c('08-0030-01-01','10-0584-01-01','06-0064-01-01','08-0112-01-01',
+                  '06-0103-02-01','10-0089-02-01','07-0186-02-01','10-0277-02-01',
+                  '08-0269-02-01','06-0396-02-01','08-0469-01-01','06-0251-02-01',
+                  '17-0451-01-01','09-0010-01-01','10-0283-02-01')
+
 # Rao email on July 13, 2017 and Nok Chhun emails on August 21, 2017 and September 13, 2017
-DF <- DF %>% filter(!(PUID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01","07-0186-02-01")))
-HTC <- HTC %>% filter(!(PTID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01","07-0186-02-01")))
-REPEATs <- REPEATs %>% filter(!(PUID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01","07-0186-02-01")))
+DF <- DF %>% dplyr::filter(!(PUID %in% Excluded_IDs) & date <= "2018-02-21" & SubCountyz != "Ndhiwa")
+HTC <- HTC %>% filter(!(PTID %in% Excluded_IDs) & today <= "2018-02-21")
+REPEATs <- REPEATs %>% filter(!(PUID %in% Excluded_IDs))
 
-all.ID <- unique(c(DF$PUID, REPEATs$PUID, HTC$PTID, ELG$PUID))
+all.ID <- unique(c(DF$PUID, REPEATs$PUID, HTC$PTID, ELG$PUID, neg$PUID, pos$PUID, slf$PUID))
 
-tracker <- data.frame(PUID = all.ID, ELG = all.ID %in% ELG$PUID, CAPI1 = all.ID %in% DF$PUID, CAPI2 = all.ID %in% REPEATs$PUID, HTC = all.ID %in% HTC$PTID)
-
-# Nok email on 9/13/2017
-#############################################################
-#
-#               TEMPORARILY EXCLUDED
-#
-#############################################################
-DF <- DF %>% filter(!(PUID %in% c('08-0269-02-01','06-0314-02-01','09-0233-02-01','09-0234-02-01','17-0306-02-01','17-0307-02-01','09-0235-01-01')))
-HTC <- HTC %>% filter(!(PTID %in% c('08-0269-02-01','06-0314-02-01','09-0233-02-01','09-0234-02-01','17-0306-02-01','17-0307-02-01','09-0235-01-01')))
-
+tracker <- data.frame(PUID = all.ID, ELG = all.ID %in% ELG$PUID, CAPI1 = all.ID %in% DF$PUID, 
+                      CAPI2 = all.ID %in% REPEATs$PUID, HTC = all.ID %in% HTC$PTID,
+                      NEG = all.ID %in% neg$PUID, POS = all.ID %in% pos$PUID, SLF = all.ID %in% slf$PUID)
 ```
 
 # Check these ID Numbers for Problems
@@ -183,7 +162,8 @@ DF %>%
 
 ```{r}
 # Add Items from First Interview to REPEATs 
-REPEATs <- left_join(REPEATs, DF %>% 
+REPEATs <- left_join(REPEATs[, colSums(!is.na(REPEATs)) > 0], 
+                     DF %>% 
                        select(PUID, file_from, Q3, Q4, Q5, Q5a, Q6, Q7, CountyLive, SubCountyLive, DivisionLive,
                               LocationLive, Q8, Q9, Q9a, Q10, Q11, Q13, Q13a, Q14, Q14a, Q15, Q15a, grp5_Note5,
                               grp5_Note5a, grp5_ack1, grp5_Note6, Q16, Q17, Note7a, Q18, Q19, Q20, Q21, Q22, Q22a,
@@ -216,9 +196,8 @@ DF %>%
   ggplot(aes(x = as.Date(date))) + 
   geom_histogram(fill="#4169E1", color = "white") +
   theme_minimal() +
-  theme(text = element_text(size=16),
-        axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_x_date(date_breaks = "7 days") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_breaks = "1 month") +
   xlab("")
 ```
 
@@ -256,8 +235,7 @@ DF %>%
   ggplot(aes(x = `Age at Last Birthday`, y = `Number of Girls`)) + 
   geom_bar(stat = 'identity', fill="#4169E1", color = "white") +
   scale_x_continuous(limits = c(14.5,23.5), breaks = seq(15,23,1)) +
-  theme_minimal() +
-  theme(text = element_text(size=16))
+  theme_minimal() 
 ```
 
 ## School Attendance
@@ -340,7 +318,6 @@ DF %>%
   ggplot(aes(x = Q10)) + 
   geom_histogram(fill="#4169E1", color = "white") +
   theme_minimal() +
-  theme(text = element_text(size=16)) +
   xlab("Number of People Who Live in Your Home")
 ```
 
@@ -599,7 +576,7 @@ DF %>%
 
 ## Have any of these issues ever stopped, delayed or discouraged you from getting, or continuing with, professional care for a health problem?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q28, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q28), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -685,7 +662,6 @@ DF %>%
   ggplot(aes(x = Grp7_Q32a)) + 
   geom_histogram(fill="#4169E1", color = "white") +
   theme_minimal() +
-  theme(text = element_text(size=16)) +
   xlab("Age at First Sexual Intercourse")
 ```
 
@@ -1191,7 +1167,7 @@ DF %>%
 # Module 5: HIV Counseling and Testing
 ## What are the various ways you have heard of that might prevent getting HIV, the virus that causes AIDS?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q63, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q63), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1232,7 +1208,7 @@ DF %>%
 
 ## Where would you go to get tested for HIV?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q65, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q65), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1330,7 +1306,6 @@ DF %>%
   ggplot(aes(x = Grp130_Q69a)) + 
   geom_histogram(fill="#4169E1", color = "white") +
   theme_minimal() +
-  theme(text = element_text(size=16)) +
   xlab("Number of Past HIV Tests")
 ```
 
@@ -1388,7 +1363,7 @@ values == "97" ~ "Decline to Answer")) %>%
 
 ## If YES, What were the reasons you were tested for HIV?
 ```{r}
-Multiple.Selection <- strsplit(DF$Grp130_Grp131_Q72, " ")
+Multiple.Selection <- strsplit(as.character(DF$Grp130_Grp131_Q72), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1461,7 +1436,7 @@ DF %>%
 
 ## If yes, who did you tell?
 ```{r}
-Multiple.Selection <- strsplit(DF$Grp130_Grp131_Q76, " ")
+Multiple.Selection <- strsplit(as.character(DF$Grp130_Grp131_Q76), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1488,7 +1463,7 @@ values == "98" ~ "Someone else not listed here")) %>%
 
 ## If no, what were the reasons you did not tell anyone of your HIV test results?
 ```{r}
-Multiple.Selection <- strsplit(DF$Grp130_Grp131_Q77, " ")
+Multiple.Selection <- strsplit(as.character(DF$Grp130_Grp131_Q77), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1601,7 +1576,7 @@ Q82 == "97" ~ "Decline to Answer")) %>%
 
 ## What would make you want to take PrEP?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q83, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q83), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1624,7 +1599,7 @@ values == "97" ~ "Decline to Answer")) %>%
 
 ## What would keep you from taking PrEP?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q84, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q84), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1678,7 +1653,7 @@ DF %>%
 
 ## If you were HIV positive, what would get in the way of you taking ARVs?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q86, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q86), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1725,7 +1700,7 @@ DF %>%
 
 ## Where would you want to get ARVs?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q88, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q88), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1811,7 +1786,7 @@ Q92 == "97" ~ "Decline to Answer")) %>%
 
 ## If YES, which method are you using?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q93, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q93), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -1860,7 +1835,7 @@ DF %>%
 
 ## Have any of these issues ever stopped, delayed or discouraged you from getting, or continuing with family planning?
 ```{r}
-Multiple.Selection <- strsplit(DF$Q95, " ")
+Multiple.Selection <- strsplit(as.character(DF$Q95), " ")
 Multiple.Selection <- setNames(Multiple.Selection, seq_along(Multiple.Selection))
 Multiple.Selection <- stack(Multiple.Selection)
 Multiple.Selection <- filter(Multiple.Selection, !is.na(values))
@@ -2010,7 +1985,7 @@ htc <- full_join(Girls.CSV.list[["HTC MoH 362_v09062017"]], Girls.CSV.list[["HTC
 ```
 
 ```{r, eval=FALSE}
-file.rename(from = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/CAPI-Summaries-19June2017.html", 
+file.rename(from = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/CAPI-Summaries-21February2018.html", 
             to = "C:/chuck/NYU/Kurth/High Yield Testing/R Code/index.html")
 ```
 

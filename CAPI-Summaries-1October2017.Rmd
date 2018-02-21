@@ -33,79 +33,65 @@ library(scales)
 ```{r, echo = FALSE}
 # Read in CSV Data
 
+capi.files <- list.files("C:/Bsync/3. Server Backup Files/5. OCT 2017/1. 6OCT2017", pattern = "BASELINE_BEHAVIORAL_SURVEY___GIRLS____", full.names = TRUE)
+selftest.files <- list.files("C:/Bsync/3. Server Backup Files/5. OCT 2017/1. 6OCT2017", pattern = "SELF_TESTING_SURVEY", full.names = TRUE)
+negcohort.files <- list.files("C:/Bsync/3. Server Backup Files/5. OCT 2017/1. 6OCT2017", pattern = "HIV_Negative_Cohort", full.names = TRUE)
+poscohort.files <- list.files("C:/Bsync/3. Server Backup Files/5. OCT 2017/1. 6OCT2017", pattern = "HIV_Positive_Cohort", full.names = TRUE)
+genelg.files <- list.files("C:/Bsync/3. Server Backup Files/5. OCT 2017/1. 6OCT2017", pattern = "General_Eligibility_Criteria", full.names = TRUE)
+htcreg.files <- list.files("C:/Bsync/3. Server Backup Files/5. OCT 2017/1. 6OCT2017", pattern = "Electronic_HTC_Register", full.names = TRUE)
+repcap <- read_csv("C:/Bsync/3. Server Backup Files/5. OCT 2017/1. 6OCT2017/01___BASELINE_BEHAVIORAL_SURVEY___GIRLS__REPEAT_CLIENTS____20th_June_2017_results.csv")
+
+capi.list <- vector(mode="list", length = length(capi.files))
+selftest.list <- vector(mode="list", length = length(selftest.files))   
+negcohort.list <- vector(mode="list", length = length(negcohort.files))
+poscohort.list <- vector(mode="list", length = length(poscohort.files))
+genelg.list <- vector(mode="list", length = length(genelg.files))
+htcreg.list <- vector(mode="list", length = length(htcreg.files))
+
+
 load("c:/chuck/NYU/Kurth/High Yield Testing/Data/ctypes.RData", .GlobalEnv)
+# capi.cols <- car::recode(BL.Capi.Col.Types, "'character'='c';'integer'='i';'double'='d'", as.factor.result = FALSE)
+# names(capi.cols) <- names(read_csv(capi.files[[1]]))
 
-Girls.CSV.capibl.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/capibl/', pattern = ".csv$|.CSV$", full.names = TRUE)
-Girls.CSV.capibl.list <- vector(mode="list", length = length(Girls.CSV.capibl.files))
+for(i in 1:length(capi.list)){capi.list[[i]] <- read_csv(file = capi.files[i], col_types = cols(`Grp7:Q49` = 'i',
+                                                                                                `Grp7:Q53e` = 'i',
+                                                                                                `Grp130:Grp131:Q77` = 'i',
+                                                                                                `Q93` = 'i',
+                                                                                                `Grp7:Grp8z:Q44` = 'i',
+                                                                                                `Grp7:Grp8z:Q44b` = 'i',
+                                                                                                `Grp7:Grp8z:Q44c2` = 'i',
+                                                                                                `Grp7:Grp8z:Q44c1` = 'i'))}
+for(i in 1:length(selftest.list)){selftest.list[[i]] <- read_csv(file = selftest.files[i])}
+for(i in 1:length(negcohort.list)){negcohort.list[[i]] <- read_csv(file = negcohort.files[i])}
+for(i in 1:length(poscohort.list)){poscohort.list[[i]] <- read_csv(file = poscohort.files[i])}
+for(i in 1:length(genelg.list)){genelg.list[[i]] <- read_csv(file = genelg.files[i])}
+for(i in 1:length(htcreg.list)){htcreg.list[[i]] <- read_csv(file = htcreg.files[i])}
 
-Girls.CSV.htc.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/htc/', pattern = ".csv$|.CSV$", full.names = TRUE)
-Girls.CSV.htc.list <- vector(mode="list", length = length(Girls.CSV.htc.files))
+names(capi.list) <- capi.files
+names(selftest.list) <- selftest.files
+names(negcohort.list) <- negcohort.files
+names(poscohort.list) <- poscohort.files
+names(genelg.list) <- genelg.files
+names(htcreg.list) <- htcreg.files
 
-Girls.CSV.elg.files <- list.files(path='c:/chuck/NYU/Kurth/High Yield Testing/Data/genelg/', pattern = ".csv$|.CSV$", full.names = TRUE)
-Girls.CSV.elg.list <- vector(mode="list", length = length(Girls.CSV.elg.files))
+htc <- bind_rows(htcreg.list, .id = "file_from")
+elg <- bind_rows(genelg.list, .id = "file_from")
+neg <- bind_rows(negcohort.list, .id = "file_from")
+pos <- bind_rows(poscohort.list, .id = "file_from")
+slf <- bind_rows(selftest.list, .id = "file_from")
+cap <- bind_rows(capi.list, .id = "file_from")
 
-for(i in 1:length(Girls.CSV.capibl.list)){Girls.CSV.capibl.list[[i]] <- read_csv(file = Girls.CSV.capibl.files[i], col_types = cols(
-                                                                                                               `Grp7:Q36d` = 'i',
-                                                                                                               `Grp7:Q36a` = 'i',
-                                                                                                               `Grp7:Q53` = 'c',
-                                                                                                               `Grp7:Q53b` = 'i',
-                                                                                                               `Grp7:Q53d` = 'i',
-                                                                                                               `Grp7:Q53e` = 'i',
-                                                                                                               `Grp7:Q49` = 'i',
-                                                                                                               `Q28` = 'c',
-                                                                                                               `Q65` = 'c',
-                                                                                                               `Grp130:Grp131:Q70a` = 'c',
-                                                                                                               `Grp130:Grp131:Q70b` = 'i',
-                                                                                                               `Grp130:Grp131:Q70d` = 'i',
-                                                                                                               `Grp130:Grp131:Q76` = 'c',
-                                                                                                               `Grp130:Grp131:Q77` = 'c',
-                                                                                                               `Q83` = 'c',
-                                                                                                               `Q84` = 'c',
-                                                                                                               `Q88` = 'c',
-                                                                                                               `Q93` = 'c',
-                                                                                                               `Q95` = 'c'))}
+DF <- as.data.table(cap)
 
-names(Girls.CSV.capibl.list) <- Girls.CSV.capibl.files
-
-DF <- bind_rows(Girls.CSV.capibl.list, .id = "file_from")
-names(DF) <- gsub(":", "_", names(DF))
-
-DF <- as.data.table(DF)
-
-REPEATs <- read_csv("c:/chuck/NYU/Kurth/High Yield Testing/Data/repeats/01___BASELINE_BEHAVIORAL_SURVEY___GIRLS__REPEAT_CLIENTS____20th_June_2017_results.csv", col_types = cols(
-                                                                                                               `Grp7:Q36d` = 'i',
-                                                                                                               `Grp7:Q36a` = 'i',
-                                                                                                               `Grp7:Q53` = 'c',
-                                                                                                               `Grp7:Q53b` = 'i',
-                                                                                                               `Grp7:Q53d` = 'i',
-                                                                                                               `Grp7:Q53e` = 'i',
-                                                                                                               `Grp7:Q49` = 'i',
-                                                                                                               `Q28` = 'c',
-                                                                                                               `Grp130:Grp131:Q70a` = 'c',
-                                                                                                               `Grp130:Grp131:Q70b` = 'i',
-                                                                                                               `Grp130:Grp131:Q70d` = 'i',
-                                                                                                               `Grp130:Grp131:Q77` = 'c',
-                                                                                                               `Q88` = 'c',
-                                                                                                               `Q93` = 'c',
-                                                                                                               `Q95` = 'c'))
+REPEATs <- repcap
 
 names(REPEATs) <- gsub(":", "_", names(REPEATs))
 
-for(i in 1:length(Girls.CSV.htc.list)){Girls.CSV.htc.list[[i]] <- read_csv(file = Girls.CSV.htc.files[i], col_types = cols(`Couple` = 'i'))}
-
-names(Girls.CSV.htc.list) <- Girls.CSV.htc.files
-
-HTC <- bind_rows(Girls.CSV.htc.list, .id = "file_from")
-
-HTC <- as.data.table(HTC)
+HTC <- as.data.table(htc)
 names(HTC) <- gsub("group2:|group1:|group3:|group5:", "", names(HTC))
 names(HTC) <- gsub(":", "_", names(HTC))
 
-for(i in 1:length(Girls.CSV.elg.list)){Girls.CSV.elg.list[[i]] <- read_csv(file = Girls.CSV.elg.files[i])}
-
-names(Girls.CSV.elg.list) <- Girls.CSV.elg.files
-
-ELG <- bind_rows(Girls.CSV.elg.list, .id = "file_from")
+ELG <- elg
 
 DF$PUID[DF$PUID == "12-0046-01-01" & DF$Q2 == 23] <- "12-0047-01-01"
 DF$PUID[DF$PUID == "12-0050"] <- "12-0050-01-01"
@@ -116,9 +102,11 @@ DF <- DF %>% filter(!(PUID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01
 HTC <- HTC %>% filter(!(PTID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01","07-0186-02-01")))
 REPEATs <- REPEATs %>% filter(!(PUID %in% c("06-0064-01-01","08-0112-01-01","06-0103-02-01","08-0030-01-01","10-0089-02-01","07-0186-02-01")))
 
-all.ID <- unique(c(DF$PUID, REPEATs$PUID, HTC$PTID, ELG$PUID))
+all.ID <- unique(c(DF$PUID, REPEATs$PUID, HTC$PTID, ELG$PUID, neg$PUID, pos$PUID, slf$PUID))
 
-tracker <- data.frame(PUID = all.ID, ELG = all.ID %in% ELG$PUID, CAPI1 = all.ID %in% DF$PUID, CAPI2 = all.ID %in% REPEATs$PUID, HTC = all.ID %in% HTC$PTID)
+tracker <- data.frame(PUID = all.ID, ELG = all.ID %in% ELG$PUID, CAPI1 = all.ID %in% DF$PUID, 
+                      CAPI2 = all.ID %in% REPEATs$PUID, HTC = all.ID %in% HTC$PTID,
+                      NEG = all.ID %in% neg$PUID, POS = all.ID %in% pos$PUID, SLF = all.ID %in% slf$PUID)
 
 # Nok email on 9/13/2017
 #############################################################

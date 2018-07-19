@@ -106,7 +106,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Girls Baseline CAPI Summaries</h1>
 <h4 class="author"><em>Chuck Cleland</em></h4>
-<h4 class="date"><em>July 17, 2018 07:59:10 AM EDT</em></h4>
+<h4 class="date"><em>July 19, 2018 08:53:08 AM EDT</em></h4>
 
 </div>
 
@@ -142,9 +142,12 @@ $(document).ready(function () {
 <li><a href="#module-2-drug-use-violence-and-mood">Module 2: Drug Use, Violence, and Mood</a><ul>
 <li><a href="#have-you-ever-drunk-alcohol-including-beer-or-local-brew-such-as-changaa">Have you ever drunk alcohol, including beer, or local brew such as changaa?</a></li>
 <li><a href="#during-the-past-30-days-on-how-many-times-did-you-have-at-least-one-drink-of-alcohol">During the past 30 days, on how many times did you have at least one drink of alcohol?</a></li>
+<li><a href="#audit-c">AUDIT-C</a><ul>
 <li><a href="#how-often-do-you-have-a-drink-containing-alcohol">How often do you have a drink containing alcohol?</a></li>
 <li><a href="#how-many-standard-drinks-containing-alcohol-do-you-have-on-a-typical-day">How many standard drinks containing alcohol do you have on a typical day?</a></li>
 <li><a href="#how-often-do-you-have-six-or-more-drinks-on-one-occasion">How often do you have six or more drinks on one occasion?</a></li>
+<li><a href="#positive-audit-c-screen">Positive AUDIT-C Screen</a></li>
+</ul></li>
 <li><a href="#how-many-times-in-the-last-30-days-have-you-used-a-drug-for-non-medical-recreational-reasons">How many times in the last 30 days have you used a drug for non-medical, recreational reasons?</a></li>
 <li><a href="#what-drug-did-you-use-most-often-in-the-last-30-days">What drug did you use most often in the last 30 days?</a></li>
 <li><a href="#has-someone-you-were-dating-or-going-out-with-ever-physically-hurt-you-on-purpose">Has someone you were dating or going out with ever physically hurt you on purpose?</a></li>
@@ -152,6 +155,7 @@ $(document).ready(function () {
 <li><a href="#over-the-last-2-weeks-how-often-have-you-been-bothered-by-any-of-the-following-problems-phq-2">Over the last 2 weeks, how often have you been bothered by any of the following problems? (PHQ-2)</a><ul>
 <li><a href="#little-interest-or-pleasure-in-doing-things">Little interest or pleasure in doing things</a></li>
 <li><a href="#feeling-down-depressed-or-hopeless">Feeling down, depressed or hopeless</a></li>
+<li><a href="#positive-phq-2-screen">Positive PHQ-2 Screen</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#module-3-health-promotion-services">Module 3: Health Promotion Services</a><ul>
@@ -263,6 +267,7 @@ $(document).ready(function () {
 <li><a href="#why-did-you-choose-the-testing-option-that-you-selected">Why did you choose the testing option that you selected?</a></li>
 </ul></li>
 <li><a href="#htc">HTC</a></li>
+<li><a href="#high-risk-negative">High Risk Negative</a></li>
 </ul>
 </div>
 
@@ -1613,8 +1618,10 @@ $(document).ready(function () {
 </tbody>
 </table>
 </div>
-<div id="how-often-do-you-have-a-drink-containing-alcohol" class="section level2">
-<h2>How often do you have a drink containing alcohol?</h2>
+<div id="audit-c" class="section level2">
+<h2>AUDIT-C</h2>
+<div id="how-often-do-you-have-a-drink-containing-alcohol" class="section level3">
+<h3>How often do you have a drink containing alcohol?</h3>
 <table>
 <thead>
 <tr class="header">
@@ -1662,8 +1669,8 @@ $(document).ready(function () {
 </tbody>
 </table>
 </div>
-<div id="how-many-standard-drinks-containing-alcohol-do-you-have-on-a-typical-day" class="section level2">
-<h2>How many standard drinks containing alcohol do you have on a typical day?</h2>
+<div id="how-many-standard-drinks-containing-alcohol-do-you-have-on-a-typical-day" class="section level3">
+<h3>How many standard drinks containing alcohol do you have on a typical day?</h3>
 <table>
 <thead>
 <tr class="header">
@@ -1701,8 +1708,8 @@ $(document).ready(function () {
 </tbody>
 </table>
 </div>
-<div id="how-often-do-you-have-six-or-more-drinks-on-one-occasion" class="section level2">
-<h2>How often do you have six or more drinks on one occasion?</h2>
+<div id="how-often-do-you-have-six-or-more-drinks-on-one-occasion" class="section level3">
+<h3>How often do you have six or more drinks on one occasion?</h3>
 <table>
 <thead>
 <tr class="header">
@@ -1739,6 +1746,31 @@ $(document).ready(function () {
 </tr>
 </tbody>
 </table>
+</div>
+<div id="positive-audit-c-screen" class="section level3">
+<h3>Positive AUDIT-C Screen</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">AUDITC_Positive</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">No</td>
+<td align="right">1170</td>
+<td align="right">97.7</td>
+</tr>
+<tr class="even">
+<td align="left">Yes</td>
+<td align="right">28</td>
+<td align="right">2.3</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="how-many-times-in-the-last-30-days-have-you-used-a-drug-for-non-medical-recreational-reasons" class="section level2">
 <h2>How many times in the last 30 days have you used a drug for non-medical, recreational reasons?</h2>
@@ -1902,6 +1934,30 @@ $(document).ready(function () {
 <td align="left">Nearly every day</td>
 <td align="right">45</td>
 <td align="right">3.8</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="positive-phq-2-screen" class="section level3">
+<h3>Positive PHQ-2 Screen</h3>
+<table>
+<thead>
+<tr class="header">
+<th align="left">PHQ2_Positive</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">No</td>
+<td align="right">1078</td>
+<td align="right">90</td>
+</tr>
+<tr class="even">
+<td align="left">Yes</td>
+<td align="right">120</td>
+<td align="right">10</td>
 </tr>
 </tbody>
 </table>
@@ -9480,6 +9536,33 @@ $(document).ready(function () {
 <td align="left">Positive</td>
 <td align="right">35</td>
 <td align="right">3</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The HTC data has duplicated ID numbers and ID numbers that don’t seem to match any in CAPI baseline.</li>
+</ul>
+</div>
+<div id="high-risk-negative" class="section level1">
+<h1>High Risk Negative</h1>
+<table>
+<thead>
+<tr class="header">
+<th align="left">High_Risk_Negative</th>
+<th align="right">n</th>
+<th align="right">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">No</td>
+<td align="right">747</td>
+<td align="right">62.4</td>
+</tr>
+<tr class="even">
+<td align="left">Yes</td>
+<td align="right">451</td>
+<td align="right">37.6</td>
 </tr>
 </tbody>
 </table>
